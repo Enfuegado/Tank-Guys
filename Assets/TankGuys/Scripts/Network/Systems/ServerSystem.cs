@@ -16,7 +16,10 @@ public class ServerSystem
 
     public void Start(int port)
     {
+        server.OnMessageReceived -= OnMessageReceived;
         server.OnMessageReceived += OnMessageReceived;
+
+        server.OnClientDisconnected -= OnClientDisconnected;
         server.OnClientDisconnected += OnClientDisconnected;
 
         _ = server.Start(port);
@@ -28,7 +31,6 @@ public class ServerSystem
 
     private void OnMessageReceived(string json, TcpClient sender)
     {
-        OnDebug?.Invoke("SERVER RECIBE: " + json);
         router.Handle(json, sender);
     }
 
@@ -42,8 +44,8 @@ public class ServerSystem
         await server.Broadcast(json);
     }
 
-    public void SimulateReceive(string json)
+    public void Stop()
     {
-        router.Handle(json, null);
+        server?.Stop();
     }
 }

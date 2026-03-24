@@ -9,9 +9,9 @@ public class ServerMessageRouter
     private INetworkServer server;
     private ConnectionManager connectionManager;
 
-    private Dictionary<Type, Action<NetMessage, TcpClient>> handlers = new();
+    public Action<int> OnStartGameRequested;
 
-    public Action OnStartGame;
+    private int hostPlayerId = -1;
 
     public ServerMessageRouter(NetworkState state, ConnectionManager connectionManager)
     {
@@ -23,25 +23,7 @@ public class ServerMessageRouter
     {
         this.server = server;
 
-        Register(new StartGameServerHandler(
-            server,
-            connectionManager,
-            () => OnStartGame?.Invoke()
-        ));
-
-        int hostId = 1;
-        state.myPlayerId = hostId;
-        state.AddPlayer(hostId);
-
         SendPlayerList();
-    }
-
-    public void Register<T>(IServerMessageHandler<T> handler) where T : NetMessage
-    {
-        handlers[typeof(T)] = (msg, sender) =>
-        {
-            handler.Handle((T)msg, sender);
-        };
     }
 
     public void Handle(string json, TcpClient sender)
@@ -50,19 +32,9 @@ public class ServerMessageRouter
 
         switch (wrapper.type)
         {
-            case MessageType.PlayerList:
-            {
-                var msg = JsonUtility.FromJson<PlayerListMessage>(wrapper.json);
-                if (handlers.TryGetValue(typeof(PlayerListMessage), out var handler))
-                    handler(msg, sender);
-                break;
-            }
-
             case MessageType.StartGame:
             {
-                var msg = JsonUtility.FromJson<StartGameMessage>(wrapper.json);
-                if (handlers.TryGetValue(typeof(StartGameMessage), out var handler))
-                    handler(msg, sender);
+                HandleStartGameRequest(sender);
                 break;
             }
 
@@ -78,9 +50,22 @@ public class ServerMessageRouter
         }
     }
 
+    private void HandleStartGameRequest(TcpClient sender)
+    {
+        if (!connectionManager.TryGetId(sender, out int playerId))
+            return;
+
+        OnStartGameRequested?.Invoke(playerId);
+    }
+
     private void HandleHello(TcpClient sender)
     {
         int assignedId = connectionManager.RegisterClient(sender);
+
+        if (hostPlayerId == -1)
+        {
+            hostPlayerId = assignedId;
+        }
 
         state.AddPlayer(assignedId);
 
@@ -89,15 +74,7 @@ public class ServerMessageRouter
             playerId = assignedId
         };
 
-        MessageWrapper wrapper = new MessageWrapper
-        {
-            type = MessageType.AssignId,
-            json = JsonUtility.ToJson(assign)
-        };
-
-        string json = JsonUtility.ToJson(wrapper);
-
-        _ = server.Send(sender, json);
+        SendToClient(sender, assign);
 
         SendPlayerList();
     }
@@ -109,7 +86,38 @@ public class ServerMessageRouter
         connectionManager.RemoveClient(client);
         state.RemovePlayer(id);
 
+        if (id == hostPlayerId)
+        {
+            hostPlayerId = -1;
+        }
+
         SendPlayerList();
+    }
+
+    private void SendToClient(TcpClient client, NetMessage msg)
+    {
+        MessageWrapper wrapper = new MessageWrapper
+        {
+            type = GetMessageType(msg),
+            json = JsonUtility.ToJson(msg)
+        };
+
+        string json = JsonUtility.ToJson(wrapper);
+
+        _ = server.Send(client, json);
+    }
+
+    public void Broadcast(NetMessage msg)
+    {
+        MessageWrapper wrapper = new MessageWrapper
+        {
+            type = GetMessageType(msg),
+            json = JsonUtility.ToJson(msg)
+        };
+
+        string json = JsonUtility.ToJson(wrapper);
+
+        _ = server.Broadcast(json);
     }
 
     private void SendPlayerList()
@@ -119,16 +127,23 @@ public class ServerMessageRouter
             playerIds = new List<int>(state.Players).ToArray()
         };
 
-        MessageWrapper wrapper = new MessageWrapper
-        {
-            type = MessageType.PlayerList,
-            json = JsonUtility.ToJson(msg)
-        };
-
-        string json = JsonUtility.ToJson(wrapper);
-
         Debug.Log("ENVIANDO PLAYER_LIST");
 
-        _ = server.Broadcast(json);
+        Broadcast(msg);
+    }
+
+    private MessageType GetMessageType(NetMessage msg)
+    {
+        if (msg is StartGameMessage) return MessageType.StartGame;
+        if (msg is PlayerListMessage) return MessageType.PlayerList;
+        if (msg is AssignIdMessage) return MessageType.AssignId;
+        if (msg is HelloMessage) return MessageType.Hello;
+
+        throw new Exception("Tipo no registrado: " + msg.GetType());
+    }
+
+    public int GetHostId()
+    {
+        return hostPlayerId;
     }
 }

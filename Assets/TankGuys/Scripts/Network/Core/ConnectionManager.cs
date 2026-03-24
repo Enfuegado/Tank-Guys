@@ -3,7 +3,7 @@ using System.Net.Sockets;
 
 public class ConnectionManager
 {
-    private int nextPlayerId = 2;
+    private int nextPlayerId = 1;
     private Dictionary<TcpClient, int> clientIds = new Dictionary<TcpClient, int>();
 
     public int RegisterClient(TcpClient client)

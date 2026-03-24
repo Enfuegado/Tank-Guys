@@ -10,6 +10,8 @@ public class NetworkServer : INetworkServer
     private TcpListener listener;
     private List<TcpClient> clients = new List<TcpClient>();
 
+    private bool isRunning = false;
+
     public Action<string, TcpClient> OnMessageReceived { get; set; }
     public Action<TcpClient> OnClientDisconnected { get; set; }
 
@@ -18,9 +20,21 @@ public class NetworkServer : INetworkServer
         listener = new TcpListener(IPAddress.Any, port);
         listener.Start();
 
-        while (true)
+        isRunning = true;
+
+        while (isRunning)
         {
-            TcpClient client = await listener.AcceptTcpClientAsync();
+            TcpClient client;
+
+            try
+            {
+                client = await listener.AcceptTcpClientAsync();
+            }
+            catch
+            {
+                break;
+            }
+
             clients.Add(client);
             _ = HandleClient(client);
         }
@@ -35,7 +49,7 @@ public class NetworkServer : INetworkServer
 
         try
         {
-            while (true)
+            while (isRunning && client.Connected)
             {
                 int bytes = await stream.ReadAsync(buffer, 0, buffer.Length);
 
@@ -62,7 +76,8 @@ public class NetworkServer : INetworkServer
         OnClientDisconnected?.Invoke(client);
 
         clients.Remove(client);
-        client.Close();
+
+        try { client.Close(); } catch {}
     }
 
     public async Task Send(TcpClient client, string message)
@@ -94,5 +109,19 @@ public class NetworkServer : INetworkServer
             {
             }
         }
+    }
+
+    public void Stop()
+    {
+        isRunning = false;
+
+        try { listener?.Stop(); } catch {}
+
+        foreach (var client in clients)
+        {
+            try { client.Close(); } catch {}
+        }
+
+        clients.Clear();
     }
 }

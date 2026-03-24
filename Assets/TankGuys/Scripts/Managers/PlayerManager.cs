@@ -21,6 +21,7 @@ public class PlayerManager : MonoBehaviour
         }
 
         Instance = this;
+        Debug.Log("GameManager creado: " + GetInstanceID());
     }
 
     public void Initialize(NetworkState networkState)
@@ -43,6 +44,12 @@ public class PlayerManager : MonoBehaviour
         {
             state.OnPlayersUpdated -= SyncPlayers;
         }
+
+        if (registry != null)
+        {
+            registry.OnPlayerAdded -= SpawnPlayer;
+            registry.OnPlayerRemoved -= RemovePlayer;
+        }
     }
 
     private void SyncPlayers()
@@ -56,6 +63,17 @@ public class PlayerManager : MonoBehaviour
 
         playerObjects[id] = obj;
 
+        if (id == state.MyPlayerId)
+        {
+            obj.name = $"Player_{id} (LOCAL)";
+            SetupLocalPlayer(obj);
+        }
+        else
+        {
+            obj.name = $"Player_{id}";
+            SetupRemotePlayer(obj);
+        }
+
         Debug.Log($"SPAWN PLAYER {id}");
     }
 
@@ -68,5 +86,20 @@ public class PlayerManager : MonoBehaviour
 
             Debug.Log($"REMOVE PLAYER {id}");
         }
+    }
+
+    private void SetupLocalPlayer(GameObject obj)
+    {
+        // Aquí irá:
+        // - cámara
+        // - input
+        // - control directo
+    }
+
+    private void SetupRemotePlayer(GameObject obj)
+    {
+        // Aquí irá:
+        // - interpolación
+        // - smoothing
     }
 }

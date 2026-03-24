@@ -15,34 +15,16 @@ public class LobbyUI : MonoBehaviour
     {
         Debug.Log("LobbyUI Start ejecutado");
 
-        if (NetworkManagerBehaviour.Instance == null)
-        {
-            Debug.LogError("NetworkManagerBehaviour no existe en la escena");
-            return;
-        }
-
         net = NetworkManagerBehaviour.Instance.net;
 
-        if (net == null)
+        if (net == null || net.State == null)
         {
-            Debug.LogError("NetworkManager no inicializado");
-            return;
-        }
-
-        if (net.State == null)
-        {
-            Debug.LogError("NetworkState es null");
+            Debug.LogError("Network no inicializado");
             return;
         }
 
         net.State.OnPlayersUpdated += UpdatePlayersUI;
         net.OnDebug += AddLog;
-
-        if (startGameButton == null)
-        {
-            Debug.LogError("startGameButton no asignado en el inspector");
-            return;
-        }
 
         startGameButton.onClick.RemoveAllListeners();
         startGameButton.onClick.AddListener(OnStartGameClicked);
@@ -63,14 +45,7 @@ public class LobbyUI : MonoBehaviour
     {
         Debug.Log("BOTON START GAME PRESIONADO");
 
-        if (NetworkManagerBehaviour.Instance != null)
-        {
-            NetworkManagerBehaviour.Instance.StartGameButton();
-        }
-        else
-        {
-            Debug.LogError("NetworkManagerBehaviour.Instance es null");
-        }
+        GameManager.Instance?.TryStartGame();
     }
 
     void UpdatePlayersUI()
@@ -90,9 +65,6 @@ public class LobbyUI : MonoBehaviour
 
     void AddLog(string msg)
     {
-        if (statusText != null)
-        {
-            statusText.text = msg;
-        }
+        statusText.text = msg;
     }
 }

@@ -10,4 +10,6 @@ public interface INetworkServer
     Task Start(int port);
     Task Send(TcpClient client, string message);
     Task Broadcast(string message);
+
+    void Stop();
 }

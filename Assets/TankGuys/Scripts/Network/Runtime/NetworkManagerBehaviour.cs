@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Threading.Tasks;
 
 public class NetworkManagerBehaviour : MonoBehaviour
 {
@@ -22,23 +23,18 @@ public class NetworkManagerBehaviour : MonoBehaviour
 
     public void CreateRoom()
     {
+        Debug.Log("CREATE ROOM CLICK");
         net.StartHost(7777);
     }
 
-    public async void JoinRoom()
+    public async Task JoinRoom()
     {
+        Debug.Log("JOIN ROOM CLICK");
         await net.ConnectToHost("127.0.0.1", 7777);
     }
 
-    public void StartGameButton()
+    public void ResetNetwork()
     {
-        if (GameManager.Instance != null)
-        {
-            GameManager.Instance.TryStartGame();
-        }
-        else
-        {
-            Debug.LogError("GameManager no existe en la escena");
-        }
+        net?.ResetState();
     }
 }

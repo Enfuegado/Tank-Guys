@@ -9,15 +9,30 @@ public class NetworkManager
 
     private ClientSystem clientSystem;
     private ServerSystem serverSystem;
+    private ServerMessageRouter serverRouter;
 
-    private bool isHost;
+    private GameSession session;
 
     public NetworkState State => state;
+    public ServerMessageRouter ServerRouter => serverRouter;
 
     public Action<string> OnDebug;
-    public Action OnStartGameReceived;
+    public Action OnDisconnected;
+    public Action OnConnected;
+
+    private bool isHostStarted = false;
 
     public NetworkManager()
+    {
+        Initialize();
+    }
+
+    public void SetSession(GameSession session)
+    {
+        this.session = session;
+    }
+
+    private void Initialize()
     {
         state = new NetworkState();
 
@@ -25,50 +40,88 @@ public class NetworkManager
 
         clientRouter.Register<AssignIdMessage>(MessageType.AssignId, msg =>
         {
-            state.myPlayerId = msg.playerId;
+            state.SetMyPlayerId(msg.playerId);
+
+            UnityMainThreadDispatcher.Instance().Enqueue(() =>
+            {
+                OnConnected?.Invoke();
+            });
         });
 
         clientRouter.Register<PlayerListMessage>(MessageType.PlayerList, msg =>
         {
-            if (msg.playerIds == null)
-            {
-                Debug.LogError("PLAYER IDS NULL (CLIENT)");
-                return;
-            }
-
+            if (msg.playerIds == null) return;
             state.SetPlayers(new List<int>(msg.playerIds));
         });
 
         clientRouter.Register<StartGameMessage>(MessageType.StartGame, msg =>
         {
-            OnStartGameReceived?.Invoke();
+            UnityMainThreadDispatcher.Instance().Enqueue(() =>
+            {
+                handler?.HandleStartGame(msg);
+            });
         });
 
         INetworkClient client = new NetworkClient();
         INetworkServer server = new NetworkServer();
 
         var connectionManager = new ConnectionManager();
-        var serverRouter = new ServerMessageRouter(state, connectionManager);
-
-        serverRouter.OnStartGame += () => OnStartGameReceived?.Invoke();
+        serverRouter = new ServerMessageRouter(state, connectionManager);
 
         clientSystem = new ClientSystem(clientRouter, client);
         serverSystem = new ServerSystem(serverRouter, server);
 
         clientSystem.OnDebug += (msg) => OnDebug?.Invoke(msg);
         serverSystem.OnDebug += (msg) => OnDebug?.Invoke(msg);
+
+        clientSystem.OnDisconnected += HandleDisconnect;
+    }
+
+    private void HandleDisconnect()
+    {
+        OnDisconnected?.Invoke();
+    }
+
+    public void ResetState()
+    {
+        if (clientSystem != null)
+        {
+            clientSystem.OnDisconnected -= HandleDisconnect;
+            clientSystem.Disconnect();
+        }
+
+        if (serverSystem != null)
+        {
+            serverSystem.Stop(); 
+        }
+
+        clientSystem = null;
+        serverSystem = null;
+        serverRouter = null;
+        handler = null;
+
+        OnDebug = null;
+        OnConnected = null;
+        OnDisconnected = null;
+
+        isHostStarted = false;
+
+        Initialize();
     }
 
     public async Task ConnectToHost(string ip, int port)
     {
-        isHost = false;
         await clientSystem.Connect(ip, port);
     }
 
     public void StartHost(int port)
     {
-        isHost = true;
+        if (isHostStarted) return;
+
+        isHostStarted = true;
+
         serverSystem.Start(port);
+        _ = clientSystem.Connect("127.0.0.1", port);
     }
 
     public void Send(NetMessage msg)
@@ -81,14 +134,7 @@ public class NetworkManager
 
         string finalJson = JsonUtility.ToJson(wrapper);
 
-        if (isHost)
-        {
-            serverSystem.SimulateReceive(finalJson);
-        }
-        else
-        {
-            clientSystem.Send(finalJson);
-        }
+        clientSystem?.Send(finalJson);
     }
 
     private MessageType GetMessageType(NetMessage msg)
@@ -100,4 +146,11 @@ public class NetworkManager
 
         throw new Exception("Tipo de mensaje no registrado: " + msg.GetType());
     }
+
+    private IGameMessageHandler handler;
+
+        public void SetHandler(IGameMessageHandler handler)
+        {
+            this.handler = handler;
+        }
 }

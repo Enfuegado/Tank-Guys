@@ -8,6 +8,7 @@ public class ClientSystem
     private MessageRouter router;
 
     public Action<string> OnDebug;
+    public Action OnDisconnected;
 
     public ClientSystem(MessageRouter router, INetworkClient client)
     {
@@ -17,7 +18,11 @@ public class ClientSystem
 
     public async Task Connect(string ip, int port)
     {
+        client.OnMessageReceived = null;
+        client.OnDisconnected = null;
+
         client.OnMessageReceived += OnMessageReceived;
+        client.OnDisconnected += HandleDisconnect;
 
         await client.Connect(ip, port);
 
@@ -45,6 +50,15 @@ public class ClientSystem
         });
     }
 
+    private void HandleDisconnect()
+    {
+        UnityMainThreadDispatcher.Instance().Enqueue(() =>
+        {
+            OnDebug?.Invoke("DESCONECTADO DEL SERVIDOR");
+            OnDisconnected?.Invoke();
+        });
+    }
+
     public async void Send(string json)
     {
         if (client == null || !client.IsConnected)
@@ -54,5 +68,10 @@ public class ClientSystem
         }
 
         await client.Send(json);
+    }
+
+    public void Disconnect()
+    {
+        client?.Disconnect();
     }
 }

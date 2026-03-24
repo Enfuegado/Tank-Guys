@@ -1,13 +1,17 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using TMPro;
+using UnityEngine.UI;
 
 public class MainMenuUI : MonoBehaviour
 {
     private NetworkManager net;
 
+    public Button createButton;
+    public Button joinButton;
+
     private bool connecting = false;
-    private bool loadingLobby = false;
+    private bool alreadyLoaded = false;
 
     public TextMeshProUGUI statusText;
 
@@ -15,32 +19,41 @@ public class MainMenuUI : MonoBehaviour
     {
         net = NetworkManagerBehaviour.Instance.net;
 
+        net.OnDebug -= UpdateStatus;
         net.OnDebug += UpdateStatus;
+
+        createButton.onClick.RemoveAllListeners();
+        joinButton.onClick.RemoveAllListeners();
+
+        createButton.onClick.AddListener(OnCreateClicked);
+        joinButton.onClick.AddListener(OnJoinClicked);
     }
 
     void Update()
     {
-        if (!loadingLobby && net.State.myPlayerId != -1)
+        if (alreadyLoaded) return;
+
+        if (net.State.Players.Count > 0)
         {
-            loadingLobby = true;
+            alreadyLoaded = true;
             SceneManager.LoadScene("Lobby");
         }
     }
 
-    public void CreateRoom()
+    private void OnCreateClicked()
     {
         if (connecting) return;
 
         connecting = true;
-        net.StartHost(7777);
+        NetworkManagerBehaviour.Instance.CreateRoom();
     }
 
-    public async void JoinRoom()
+    private async void OnJoinClicked()
     {
         if (connecting) return;
 
         connecting = true;
-        await net.ConnectToHost("127.0.0.1", 7777);
+        await NetworkManagerBehaviour.Instance.JoinRoom();
     }
 
     private void UpdateStatus(string msg)
@@ -48,6 +61,14 @@ public class MainMenuUI : MonoBehaviour
         if (statusText != null)
         {
             statusText.text = msg;
+        }
+    }
+
+    private void OnDestroy()
+    {
+        if (net != null)
+        {
+            net.OnDebug -= UpdateStatus;
         }
     }
 }

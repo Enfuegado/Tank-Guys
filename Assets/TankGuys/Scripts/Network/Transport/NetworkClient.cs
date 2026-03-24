@@ -11,6 +11,7 @@ public class NetworkClient : INetworkClient
     public bool IsConnected { get; private set; }
 
     public Action<string> OnMessageReceived { get; set; }
+    public Action OnDisconnected { get; set; }
 
     public async Task Connect(string ip, int port)
     {
@@ -30,7 +31,7 @@ public class NetworkClient : INetworkClient
 
         try
         {
-            while (IsConnected)
+            while (IsConnected && client != null && client.Connected)
             {
                 int bytes = await stream.ReadAsync(buffer, 0, buffer.Length);
 
@@ -52,7 +53,6 @@ public class NetworkClient : INetworkClient
         }
         catch
         {
-
         }
 
         Disconnect();
@@ -60,7 +60,7 @@ public class NetworkClient : INetworkClient
 
     public async Task Send(string message)
     {
-        if (!IsConnected) return;
+        if (!IsConnected || stream == null) return;
 
         byte[] data = Encoding.UTF8.GetBytes(message + "\n");
         await stream.WriteAsync(data, 0, data.Length);
@@ -68,8 +68,16 @@ public class NetworkClient : INetworkClient
 
     public void Disconnect()
     {
+        if (!IsConnected) return;
+
         IsConnected = false;
-        stream?.Close();
-        client?.Close();
+
+        try { stream?.Close(); } catch {}
+        try { client?.Close(); } catch {}
+
+        stream = null;
+        client = null;
+
+        OnDisconnected?.Invoke();
     }
 }

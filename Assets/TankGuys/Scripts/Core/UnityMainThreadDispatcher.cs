@@ -4,17 +4,24 @@ using UnityEngine;
 
 public class UnityMainThreadDispatcher : MonoBehaviour
 {
-    private static readonly Queue<Action> executionQueue = new Queue<Action>();
     private static UnityMainThreadDispatcher instance;
+
+    private static readonly Queue<Action> executionQueue = new Queue<Action>();
 
     public static UnityMainThreadDispatcher Instance()
     {
         if (instance == null)
         {
-            GameObject obj = new GameObject("MainThreadDispatcher");
-            instance = obj.AddComponent<UnityMainThreadDispatcher>();
-            DontDestroyOnLoad(obj);
+            instance = FindObjectOfType<UnityMainThreadDispatcher>();
+
+            if (instance == null)
+            {
+                GameObject obj = new GameObject("MainThreadDispatcher");
+                instance = obj.AddComponent<UnityMainThreadDispatcher>();
+                DontDestroyOnLoad(obj);
+            }
         }
+
         return instance;
     }
 
@@ -28,12 +35,33 @@ public class UnityMainThreadDispatcher : MonoBehaviour
 
     void Update()
     {
-        lock (executionQueue)
+        while (true)
         {
-            while (executionQueue.Count > 0)
+            Action action = null;
+
+            lock (executionQueue)
             {
-                executionQueue.Dequeue().Invoke();
+                if (executionQueue.Count > 0)
+                {
+                    action = executionQueue.Dequeue();
+                }
             }
+
+            if (action == null) break;
+
+            action.Invoke();
         }
+    }
+
+    void Awake()
+    {
+        if (instance != null && instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
+
+        instance = this;
+        DontDestroyOnLoad(gameObject);
     }
 }

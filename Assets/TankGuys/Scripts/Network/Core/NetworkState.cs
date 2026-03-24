@@ -3,13 +3,18 @@ using System.Collections.Generic;
 
 public class NetworkState
 {
-    private List<int> players = new List<int>();
+    private readonly List<int> players = new List<int>();
 
     public IReadOnlyList<int> Players => players;
 
-    public int myPlayerId = -1;
+    public int MyPlayerId { get; private set; } = -1;
 
-    public Action OnPlayersUpdated;
+    public event Action OnPlayersUpdated;
+
+    public void SetMyPlayerId(int id)
+    {
+        MyPlayerId = id;
+    }
 
     public void SetPlayers(List<int> newPlayers)
     {
