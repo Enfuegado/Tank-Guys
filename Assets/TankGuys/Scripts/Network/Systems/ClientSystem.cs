@@ -54,7 +54,6 @@ public class ClientSystem
     {
         UnityMainThreadDispatcher.Instance().Enqueue(() =>
         {
-            OnDebug?.Invoke("DESCONECTADO DEL SERVIDOR");
             OnDisconnected?.Invoke();
         });
     }

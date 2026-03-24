@@ -1,10 +1,12 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
-public class GameManager : MonoBehaviour  
-{  
-    public static GameManager Instance;  
+public class GameManager : MonoBehaviour
+{
+    public static GameManager Instance;
 
     private GameSession session;
+    private NetworkManager net;
 
     void Awake()
     {
@@ -16,14 +18,29 @@ public class GameManager : MonoBehaviour
 
         Instance = this;
         DontDestroyOnLoad(gameObject);
+
+        SceneManager.sceneLoaded += OnSceneLoaded;
     }
 
-    void Start()
+    public void Initialize(NetworkManager network)
     {
-        var net = NetworkManagerBehaviour.Instance.net;
+        net = network;
 
-        session = new GameSession(net, net.ServerRouter);
+        CreateSession();
+    }
 
+    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        if (net == null) return;
+
+        CreateSession();
+    }
+
+    private void CreateSession()
+    {
+        if (session != null) return;
+
+        session = new GameSession(net);
         net.SetHandler(session);
     }
 

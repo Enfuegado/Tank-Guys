@@ -23,18 +23,32 @@ public class NetworkManagerBehaviour : MonoBehaviour
 
     public void CreateRoom()
     {
-        Debug.Log("CREATE ROOM CLICK");
-        net.StartHost(7777);
+
+        net.StartHost();
+
+        InitializeGame();
     }
 
     public async Task JoinRoom()
     {
-        Debug.Log("JOIN ROOM CLICK");
-        await net.ConnectToHost("127.0.0.1", 7777);
+
+        await net.Join("127.0.0.1", 7777);
+
+        InitializeGame();
     }
 
     public void ResetNetwork()
     {
-        net?.ResetState();
+        net?.Shutdown();
+    }
+
+    private void InitializeGame()
+    {
+        if (GameManager.Instance == null)
+        {
+            new GameObject("GameManager").AddComponent<GameManager>();
+        }
+
+        GameManager.Instance.Initialize(net);
     }
 }

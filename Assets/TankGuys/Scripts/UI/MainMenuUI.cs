@@ -19,9 +19,6 @@ public class MainMenuUI : MonoBehaviour
     {
         net = NetworkManagerBehaviour.Instance.net;
 
-        net.OnDebug -= UpdateStatus;
-        net.OnDebug += UpdateStatus;
-
         createButton.onClick.RemoveAllListeners();
         joinButton.onClick.RemoveAllListeners();
 
@@ -33,7 +30,7 @@ public class MainMenuUI : MonoBehaviour
     {
         if (alreadyLoaded) return;
 
-        if (net.State.Players.Count > 0)
+        if (net.State != null && net.State.Players.Count > 0)
         {
             alreadyLoaded = true;
             SceneManager.LoadScene("Lobby");
@@ -45,6 +42,8 @@ public class MainMenuUI : MonoBehaviour
         if (connecting) return;
 
         connecting = true;
+        statusText.text = "Creando sala...";
+
         NetworkManagerBehaviour.Instance.CreateRoom();
     }
 
@@ -53,22 +52,8 @@ public class MainMenuUI : MonoBehaviour
         if (connecting) return;
 
         connecting = true;
+        statusText.text = "Conectando...";
+
         await NetworkManagerBehaviour.Instance.JoinRoom();
-    }
-
-    private void UpdateStatus(string msg)
-    {
-        if (statusText != null)
-        {
-            statusText.text = msg;
-        }
-    }
-
-    private void OnDestroy()
-    {
-        if (net != null)
-        {
-            net.OnDebug -= UpdateStatus;
-        }
     }
 }

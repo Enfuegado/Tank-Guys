@@ -3,9 +3,9 @@ using TMPro;
 using UnityEngine.UI;
 using System.Text;
 
-public class LobbyUI : MonoBehaviour
-{
-    public TextMeshProUGUI playersText;
+public class LobbyUI : MonoBehaviour 
+{ 
+    public TextMeshProUGUI playersText; 
     public TextMeshProUGUI statusText;
     public Button startGameButton;
 
@@ -13,8 +13,6 @@ public class LobbyUI : MonoBehaviour
 
     void Start()
     {
-        Debug.Log("LobbyUI Start ejecutado");
-
         net = NetworkManagerBehaviour.Instance.net;
 
         if (net == null || net.State == null)
@@ -24,7 +22,6 @@ public class LobbyUI : MonoBehaviour
         }
 
         net.State.OnPlayersUpdated += UpdatePlayersUI;
-        net.OnDebug += AddLog;
 
         startGameButton.onClick.RemoveAllListeners();
         startGameButton.onClick.AddListener(OnStartGameClicked);
@@ -37,14 +34,11 @@ public class LobbyUI : MonoBehaviour
         if (net != null && net.State != null)
         {
             net.State.OnPlayersUpdated -= UpdatePlayersUI;
-            net.OnDebug -= AddLog;
         }
     }
 
     private void OnStartGameClicked()
     {
-        Debug.Log("BOTON START GAME PRESIONADO");
-
         GameManager.Instance?.TryStartGame();
     }
 
@@ -61,10 +55,5 @@ public class LobbyUI : MonoBehaviour
 
         playersText.text = sb.ToString();
         statusText.text = "Esperando jugadores...";
-    }
-
-    void AddLog(string msg)
-    {
-        statusText.text = msg;
     }
 }
