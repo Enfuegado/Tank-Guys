@@ -1,4 +1,4 @@
-public interface IMessageHandler<T> where T : NetMessage
+public interface IMessageHandler
 {
-    void Handle(T message);
+    void Handle(NetMessage message, GameClient client);
 }

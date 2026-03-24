@@ -6,8 +6,6 @@ public class NetworkManager
 
     public GameState State => client?.State;
 
-    public event Action OnDisconnected;
-
     public void StartHost()
     {
         var transport = new TcpTransport();
