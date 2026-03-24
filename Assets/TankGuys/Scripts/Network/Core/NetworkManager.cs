@@ -11,7 +11,7 @@ public class NetworkManager
 
     public void StartHost()
     {
-        role = new HostNetwork();
+        role = NetworkRoleFactory.CreateHost();
 
         role.OnDisconnected += HandleDisconnect;
 
@@ -20,7 +20,7 @@ public class NetworkManager
 
     public async Task Join(string ip, int port)
     {
-        role = new ClientNetwork();
+        role = NetworkRoleFactory.CreateClient();
 
         role.OnDisconnected += HandleDisconnect;
 
@@ -53,8 +53,7 @@ public class NetworkManager
 
     public void SetHandler(IGameMessageHandler handler)
     {
-        if (role is ClientNetwork c) c.SetHandler(handler);
-        if (role is HostNetwork h) h.SetHandler(handler);
+        role?.SetHandler(handler);
     }
 
     public T GetRole<T>() where T : class, INetworkRole

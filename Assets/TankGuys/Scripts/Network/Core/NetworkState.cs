@@ -16,7 +16,7 @@ public class NetworkState
         MyPlayerId = id;
     }
 
-    public void SetPlayers(List<int> newPlayers)
+    public void ApplyPlayerList(List<int> newPlayers)
     {
         players.Clear();
         players.AddRange(newPlayers);
@@ -24,20 +24,4 @@ public class NetworkState
         OnPlayersUpdated?.Invoke();
     }
 
-    public void AddPlayer(int id)
-    {
-        if (!players.Contains(id))
-        {
-            players.Add(id);
-            OnPlayersUpdated?.Invoke();
-        }
-    }
-
-    public void RemovePlayer(int id)
-    {
-        if (players.Remove(id))
-        {
-            OnPlayersUpdated?.Invoke();
-        }
-    }
 }

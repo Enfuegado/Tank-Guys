@@ -11,4 +11,6 @@ public interface INetworkRole
     Task Connect(string ip, int port);
     void Send(NetMessage msg);
     void Shutdown();
+
+    void SetHandler(IGameMessageHandler handler);
 }

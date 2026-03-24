@@ -29,7 +29,7 @@ public class ClientNetwork : INetworkRole
         router.Register<PlayerListMessage>(MessageType.PlayerList, msg =>
         {
             if (msg.playerIds != null)
-                state.SetPlayers(new List<int>(msg.playerIds));
+                state.ApplyPlayerList(new List<int>(msg.playerIds));
         });
 
         router.Register<StartGameMessage>(MessageType.StartGame, msg =>

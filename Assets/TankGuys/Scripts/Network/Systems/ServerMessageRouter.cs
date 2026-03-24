@@ -5,7 +5,6 @@ using UnityEngine;
 
 public class ServerMessageRouter
 {
-    private NetworkState state;
     private INetworkServer server;
     private ConnectionManager connectionManager;
 
@@ -13,10 +12,19 @@ public class ServerMessageRouter
 
     private int hostPlayerId = -1;
 
-    public ServerMessageRouter(NetworkState state, ConnectionManager connectionManager)
+    private readonly List<int> players = new List<int>();
+
+    private Dictionary<MessageType, Action<TcpClient>> handlers;
+
+    public ServerMessageRouter(ConnectionManager connectionManager)
     {
-        this.state = state;
         this.connectionManager = connectionManager;
+
+        handlers = new Dictionary<MessageType, Action<TcpClient>>
+        {
+            { MessageType.StartGame, HandleStartGameRequest },
+            { MessageType.Hello, HandleHello }
+        };
     }
 
     public void Initialize(INetworkServer server)
@@ -30,23 +38,13 @@ public class ServerMessageRouter
     {
         MessageWrapper wrapper = JsonUtility.FromJson<MessageWrapper>(json);
 
-        switch (wrapper.type)
+        if (handlers.TryGetValue(wrapper.type, out var handler))
         {
-            case MessageType.StartGame:
-            {
-                HandleStartGameRequest(sender);
-                break;
-            }
-
-            case MessageType.Hello:
-            {
-                HandleHello(sender);
-                break;
-            }
-
-            default:
-                Debug.LogWarning("Tipo no manejado: " + wrapper.type);
-                break;
+            handler(sender);
+        }
+        else
+        {
+            Debug.LogWarning("Tipo no manejado: " + wrapper.type);
         }
     }
 
@@ -62,12 +60,15 @@ public class ServerMessageRouter
     {
         int assignedId = connectionManager.RegisterClient(sender);
 
+        if (!players.Contains(assignedId))
+        {
+            players.Add(assignedId);
+        }
+
         if (hostPlayerId == -1)
         {
             hostPlayerId = assignedId;
         }
-
-        state.AddPlayer(assignedId);
 
         AssignIdMessage assign = new AssignIdMessage
         {
@@ -84,7 +85,8 @@ public class ServerMessageRouter
         if (!connectionManager.TryGetId(client, out int id)) return;
 
         connectionManager.RemoveClient(client);
-        state.RemovePlayer(id);
+
+        players.Remove(id);
 
         if (id == hostPlayerId)
         {
@@ -124,10 +126,8 @@ public class ServerMessageRouter
     {
         PlayerListMessage msg = new PlayerListMessage
         {
-            playerIds = new List<int>(state.Players).ToArray()
+            playerIds = players.ToArray()
         };
-
-        Debug.Log("ENVIANDO PLAYER_LIST");
 
         Broadcast(msg);
     }
