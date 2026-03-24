@@ -1,51 +1,32 @@
-using System;
-using System.Threading.Tasks;
-using UnityEngine;
-
-public class HostNetwork : INetworkRole
+public class HostNetwork
 {
-    private ClientNetwork client;
-    private ServerNetwork server;
+    private GameServer server;
+    private GameClient client;
 
-    public NetworkState State => client.State;
+    public GameClient Client => client;
+    public GameState State => client?.State;
 
-    public event Action OnDisconnected;
-
-    public HostNetwork()
+    public void StartHost()
     {
-        server = new ServerNetwork();
-        client = new ClientNetwork();
-
-        client.OnDisconnected += () =>
-        {
-            OnDisconnected?.Invoke();
-        };
-    }
-
-    public async Task Start()
-    {
+        server = new GameServer();
         server.Start(7777);
 
-        await client.Connect("127.0.0.1", 7777);
-    }
-
-    public async Task Connect(string ip, int port)
-    {
+        var transport = new TcpTransport();
+        client = new GameClient(transport);
+        client.Start();
     }
 
     public void Send(NetMessage msg)
     {
-        client.Send(msg);
+        client?.Send(msg);
     }
 
     public void Shutdown()
     {
-        client.Shutdown();
-        server.Stop();
-    }
+        client?.Stop();
+        server?.Stop();
 
-    public void SetHandler(IGameMessageHandler handler)
-    {
-        client.SetHandler(handler);
+        client = null;
+        server = null;
     }
 }

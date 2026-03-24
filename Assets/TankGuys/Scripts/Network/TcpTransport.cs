@@ -1,43 +1,36 @@
 using System;
-using System.Threading.Tasks;
-using System.Collections.Generic;
 using UnityEngine;
 
-public class ClientNetwork : INetworkRole
+public class TcpTransport : ITransport
 {
-    private NetworkState state;
     private ClientSystem clientSystem;
     private MessageRouter router;
 
-    private IGameMessageHandler handler;
-
-    public NetworkState State => state;
-
+    public event Action<NetMessage> OnMessage;
     public event Action OnDisconnected;
 
-    public ClientNetwork()
+    public TcpTransport()
     {
-        state = new NetworkState();
-
         router = new MessageRouter();
 
         router.Register<AssignIdMessage>(MessageType.AssignId, msg =>
         {
-            state.SetMyPlayerId(msg.playerId);
+            OnMessage?.Invoke(msg);
         });
 
         router.Register<PlayerListMessage>(MessageType.PlayerList, msg =>
         {
-            if (msg.playerIds != null)
-                state.ApplyPlayerList(new List<int>(msg.playerIds));
+            OnMessage?.Invoke(msg);
         });
 
         router.Register<StartGameMessage>(MessageType.StartGame, msg =>
         {
-            UnityMainThreadDispatcher.Instance().Enqueue(() =>
-            {
-                handler?.HandleStartGame(msg);
-            });
+            OnMessage?.Invoke(msg);
+        });
+
+        router.Register<MoveMessage>(MessageType.Move, msg =>
+        {
+            OnMessage?.Invoke(msg);
         });
 
         clientSystem = new ClientSystem(router, new NetworkClient());
@@ -48,36 +41,27 @@ public class ClientNetwork : INetworkRole
         };
     }
 
-    public async Task Start()
+    public async void Start()
     {
+        await clientSystem.Connect("127.0.0.1", 7777);
     }
 
-    public async Task Connect(string ip, int port)
+    public void Stop()
     {
-        await clientSystem.Connect(ip, port);
+        clientSystem.Disconnect();
     }
 
-    public void Send(NetMessage msg)
+    public void Send(NetMessage message)
     {
         MessageWrapper wrapper = new MessageWrapper
         {
-            type = GetMessageType(msg),
-            json = JsonUtility.ToJson(msg)
+            type = GetMessageType(message),
+            json = JsonUtility.ToJson(message)
         };
 
         string json = JsonUtility.ToJson(wrapper);
 
         clientSystem.Send(json);
-    }
-
-    public void Shutdown()
-    {
-        clientSystem.Disconnect();
-    }
-
-    public void SetHandler(IGameMessageHandler handler)
-    {
-        this.handler = handler;
     }
 
     private MessageType GetMessageType(NetMessage msg)
@@ -86,6 +70,7 @@ public class ClientNetwork : INetworkRole
         if (msg is PlayerListMessage) return MessageType.PlayerList;
         if (msg is AssignIdMessage) return MessageType.AssignId;
         if (msg is HelloMessage) return MessageType.Hello;
+        if (msg is MoveMessage) return MessageType.Move;
 
         throw new Exception("Tipo no registrado: " + msg.GetType());
     }

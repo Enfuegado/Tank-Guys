@@ -1,63 +1,35 @@
 using System;
-using System.Threading.Tasks;
 
 public class NetworkManager
 {
-    private INetworkRole role;
+    private GameClient client;
 
-    public NetworkState State => role?.State;
+    public GameState State => client?.State;
 
     public event Action OnDisconnected;
 
     public void StartHost()
     {
-        role = NetworkRoleFactory.CreateHost();
-
-        role.OnDisconnected += HandleDisconnect;
-
-        role.Start();
+        var transport = new TcpTransport();
+        client = new GameClient(transport);
+        client.Start();
     }
 
-    public async Task Join(string ip, int port)
+    public void Join(string ip, int port)
     {
-        role = NetworkRoleFactory.CreateClient();
-
-        role.OnDisconnected += HandleDisconnect;
-
-        await role.Connect(ip, port);
+        var transport = new TcpTransport();
+        client = new GameClient(transport);
+        client.Start();
     }
 
     public void Send(NetMessage msg)
     {
-        role?.Send(msg);
+        client?.Send(msg);
     }
 
     public void Shutdown()
     {
-        if (role != null)
-        {
-            role.OnDisconnected -= HandleDisconnect;
-            role.Shutdown();
-        }
-
-        role = null;
-    }
-
-    private void HandleDisconnect()
-    {
-        role?.Shutdown();
-        role = null;
-
-        OnDisconnected?.Invoke();
-    }
-
-    public void SetHandler(IGameMessageHandler handler)
-    {
-        role?.SetHandler(handler);
-    }
-
-    public T GetRole<T>() where T : class, INetworkRole
-    {
-        return role as T;
+        client?.Stop();
+        client = null;
     }
 }

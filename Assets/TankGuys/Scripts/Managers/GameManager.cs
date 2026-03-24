@@ -5,8 +5,8 @@ public class GameManager : MonoBehaviour
 {
     public static GameManager Instance;
 
-    private GameSession session;
-    private NetworkManager net;
+    private NetworkManagerBehaviour net;
+    private GameClient client;
 
     void Awake()
     {
@@ -22,30 +22,47 @@ public class GameManager : MonoBehaviour
         SceneManager.sceneLoaded += OnSceneLoaded;
     }
 
-    public void Initialize(NetworkManager network)
+    public void Initialize(NetworkManagerBehaviour network)
     {
         net = network;
+        client = net.ActiveClient;
 
-        CreateSession();
+        if (client != null)
+        {
+            client.OnStartGame += HandleStartGame;
+            client.OnDisconnected += HandleDisconnect;
+        }
+    }
+
+    private void HandleStartGame()
+    {
+        UnityMainThreadDispatcher.Instance().Enqueue(() =>
+        {
+            SceneManager.LoadScene("Game");
+        });
+    }
+
+    private void HandleDisconnect()
+    {
+        UnityMainThreadDispatcher.Instance().Enqueue(() =>
+        {
+            NetworkManagerBehaviour.Instance.ResetNetwork();
+            SceneManager.LoadScene("MainMenu");
+        });
     }
 
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
-        if (net == null) return;
+        var playerManager = FindObjectOfType<PlayerManager>();
 
-        CreateSession();
-    }
-
-    private void CreateSession()
-    {
-        if (session != null) return;
-
-        session = new GameSession(net);
-        net.SetHandler(session);
+        if (playerManager != null && net != null)
+        {
+            playerManager.Initialize(net.State);
+        }
     }
 
     public void TryStartGame()
     {
-        session?.TryStartGame();
+        net?.Send(new StartGameMessage());
     }
 }

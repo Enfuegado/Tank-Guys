@@ -5,20 +5,15 @@ using UnityEngine.UI;
 
 public class MainMenuUI : MonoBehaviour
 {
-    private NetworkManager net;
-
     public Button createButton;
     public Button joinButton;
+    public TextMeshProUGUI statusText;
 
     private bool connecting = false;
     private bool alreadyLoaded = false;
 
-    public TextMeshProUGUI statusText;
-
     void Start()
     {
-        net = NetworkManagerBehaviour.Instance.net;
-
         createButton.onClick.RemoveAllListeners();
         joinButton.onClick.RemoveAllListeners();
 
@@ -30,7 +25,9 @@ public class MainMenuUI : MonoBehaviour
     {
         if (alreadyLoaded) return;
 
-        if (net.State != null && net.State.Players.Count > 0)
+        var state = NetworkManagerBehaviour.Instance.State;
+
+        if (state != null && state.Players.Count > 0)
         {
             alreadyLoaded = true;
             SceneManager.LoadScene("Lobby");

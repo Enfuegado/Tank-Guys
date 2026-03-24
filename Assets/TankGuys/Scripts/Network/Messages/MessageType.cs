@@ -3,5 +3,6 @@ public enum MessageType
     Hello,
     AssignId,
     PlayerList,
-    StartGame
+    StartGame,
+    Move
 }

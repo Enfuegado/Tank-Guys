@@ -5,7 +5,27 @@ public class NetworkManagerBehaviour : MonoBehaviour
 {
     public static NetworkManagerBehaviour Instance;
 
-    public NetworkManager net;
+    private HostNetwork host;
+    private GameClient client;
+
+    public GameState State
+    {
+        get
+        {
+            if (host != null) return host.State;
+            if (client != null) return client.State;
+            return null;
+        }
+    }
+
+    public GameClient ActiveClient
+    {
+        get
+        {
+            if (host != null) return host.Client;
+            return client;
+        }
+    }
 
     void Awake()
     {
@@ -17,29 +37,41 @@ public class NetworkManagerBehaviour : MonoBehaviour
 
         Instance = this;
         DontDestroyOnLoad(gameObject);
-
-        net = new NetworkManager();
     }
 
     public void CreateRoom()
     {
-
-        net.StartHost();
+        host = new HostNetwork();
+        host.StartHost();
 
         InitializeGame();
     }
 
     public async Task JoinRoom()
     {
-
-        await net.Join("127.0.0.1", 7777);
+        var transport = new TcpTransport();
+        client = new GameClient(transport);
+        client.Start();
 
         InitializeGame();
+        await Task.CompletedTask;
+    }
+
+    public void Send(NetMessage msg)
+    {
+        if (host != null)
+            host.Send(msg);
+        else
+            client?.Send(msg);
     }
 
     public void ResetNetwork()
     {
-        net?.Shutdown();
+        host?.Shutdown();
+        client?.Stop();
+
+        host = null;
+        client = null;
     }
 
     private void InitializeGame()
@@ -49,6 +81,6 @@ public class NetworkManagerBehaviour : MonoBehaviour
             new GameObject("GameManager").AddComponent<GameManager>();
         }
 
-        GameManager.Instance.Initialize(net);
+        GameManager.Instance.Initialize(this);
     }
 }

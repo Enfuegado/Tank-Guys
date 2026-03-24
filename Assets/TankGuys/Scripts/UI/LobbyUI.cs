@@ -2,6 +2,7 @@ using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
 using System.Text;
+using System.Linq;
 
 public class LobbyUI : MonoBehaviour 
 { 
@@ -9,32 +10,15 @@ public class LobbyUI : MonoBehaviour
     public TextMeshProUGUI statusText;
     public Button startGameButton;
 
-    private NetworkManager net;
-
     void Start()
     {
-        net = NetworkManagerBehaviour.Instance.net;
-
-        if (net == null || net.State == null)
-        {
-            Debug.LogError("Network no inicializado");
-            return;
-        }
-
-        net.State.OnPlayersUpdated += UpdatePlayersUI;
-
         startGameButton.onClick.RemoveAllListeners();
         startGameButton.onClick.AddListener(OnStartGameClicked);
-
-        UpdatePlayersUI();
     }
 
-    void OnDestroy()
+    void Update()
     {
-        if (net != null && net.State != null)
-        {
-            net.State.OnPlayersUpdated -= UpdatePlayersUI;
-        }
+        UpdatePlayersUI();
     }
 
     private void OnStartGameClicked()
@@ -44,13 +28,15 @@ public class LobbyUI : MonoBehaviour
 
     void UpdatePlayersUI()
     {
-        if (net == null || net.State == null) return;
+        var state = NetworkManagerBehaviour.Instance.State;
+
+        if (state == null) return;
 
         StringBuilder sb = new StringBuilder();
 
-        foreach (int id in net.State.Players)
+        foreach (var kvp in state.Players.OrderBy(p => p.Key))
         {
-            sb.AppendLine("Jugador " + id);
+            sb.AppendLine("Jugador " + kvp.Key);
         }
 
         playersText.text = sb.ToString();

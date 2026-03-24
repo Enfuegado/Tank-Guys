@@ -9,8 +9,7 @@ public class PlayerManager : MonoBehaviour
 
     private Dictionary<int, GameObject> playerObjects = new();
 
-    private PlayerRegistry registry;
-    private NetworkState state;
+    private GameState state;
 
     void Awake()
     {
@@ -21,60 +20,63 @@ public class PlayerManager : MonoBehaviour
         }
 
         Instance = this;
-        Debug.Log("GameManager creado: " + GetInstanceID());
     }
 
-    public void Initialize(NetworkState networkState)
+    public void Initialize(GameState gameState)
     {
-        state = networkState;
+        state = gameState;
+    }
 
-        registry = new PlayerRegistry();
-
-        registry.OnPlayerAdded += SpawnPlayer;
-        registry.OnPlayerRemoved += RemovePlayer;
-
-        state.OnPlayersUpdated += SyncPlayers;
+    void Update()
+    {
+        if (state == null) return;
 
         SyncPlayers();
     }
 
-    void OnDestroy()
-    {
-        if (state != null)
-        {
-            state.OnPlayersUpdated -= SyncPlayers;
-        }
-
-        if (registry != null)
-        {
-            registry.OnPlayerAdded -= SpawnPlayer;
-            registry.OnPlayerRemoved -= RemovePlayer;
-        }
-    }
-
     private void SyncPlayers()
     {
-        registry.Sync(state.Players);
+        foreach (var kvp in state.Players)
+        {
+            int id = kvp.Key;
+
+            if (!playerObjects.ContainsKey(id))
+            {
+                SpawnPlayer(id);
+            }
+
+            UpdatePlayer(kvp.Value);
+        }
+
+        var toRemove = new List<int>();
+
+        foreach (var id in playerObjects.Keys)
+        {
+            if (!state.Players.ContainsKey(id))
+            {
+                toRemove.Add(id);
+            }
+        }
+
+        foreach (var id in toRemove)
+        {
+            RemovePlayer(id);
+        }
     }
 
     private void SpawnPlayer(int id)
     {
         GameObject obj = Instantiate(playerPrefab);
-
+        obj.name = $"Player_{id}";
         playerObjects[id] = obj;
+    }
 
-        if (id == state.MyPlayerId)
+    private void UpdatePlayer(PlayerData data)
+    {
+        if (playerObjects.TryGetValue(data.Id, out GameObject obj))
         {
-            obj.name = $"Player_{id} (LOCAL)";
-            SetupLocalPlayer(obj);
+            obj.transform.position = new Vector3(data.Position.x, 0, data.Position.y);
         }
-        else
-        {
-            obj.name = $"Player_{id}";
-            SetupRemotePlayer(obj);
-        }
-
-        Debug.Log($"SPAWN PLAYER {id}");
     }
 
     private void RemovePlayer(int id)
@@ -83,23 +85,6 @@ public class PlayerManager : MonoBehaviour
         {
             Destroy(obj);
             playerObjects.Remove(id);
-
-            Debug.Log($"REMOVE PLAYER {id}");
         }
-    }
-
-    private void SetupLocalPlayer(GameObject obj)
-    {
-        // Aquí irá:
-        // - cámara
-        // - input
-        // - control directo
-    }
-
-    private void SetupRemotePlayer(GameObject obj)
-    {
-        // Aquí irá:
-        // - interpolación
-        // - smoothing
     }
 }

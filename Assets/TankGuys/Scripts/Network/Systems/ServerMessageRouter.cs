@@ -1,6 +1,6 @@
 using System;
-using System.Net.Sockets;
 using System.Collections.Generic;
+using System.Net.Sockets;
 using UnityEngine;
 
 public class ServerMessageRouter
@@ -8,30 +8,30 @@ public class ServerMessageRouter
     private INetworkServer server;
     private ConnectionManager connectionManager;
 
-    public Action<int> OnStartGameRequested;
+    private Dictionary<MessageType, Action<string, TcpClient>> handlers;
 
     private int hostPlayerId = -1;
 
-    private readonly List<int> players = new List<int>();
-
-    private Dictionary<MessageType, Action<TcpClient>> handlers;
+    public event Action<TcpClient, int> OnClientConnected;
+    public event Action<TcpClient, int> OnClientDisconnected;
+    public event Action<int> OnStartGameRequested;
+    public event Action<TcpClient, MoveMessage> OnMoveReceived;
 
     public ServerMessageRouter(ConnectionManager connectionManager)
     {
         this.connectionManager = connectionManager;
 
-        handlers = new Dictionary<MessageType, Action<TcpClient>>
+        handlers = new Dictionary<MessageType, Action<string, TcpClient>>
         {
-            { MessageType.StartGame, HandleStartGameRequest },
-            { MessageType.Hello, HandleHello }
+            { MessageType.Hello, HandleHello },
+            { MessageType.StartGame, HandleStartGame },
+            { MessageType.Move, HandleMove }
         };
     }
 
     public void Initialize(INetworkServer server)
     {
         this.server = server;
-
-        SendPlayerList();
     }
 
     public void Handle(string json, TcpClient sender)
@@ -40,7 +40,7 @@ public class ServerMessageRouter
 
         if (handlers.TryGetValue(wrapper.type, out var handler))
         {
-            handler(sender);
+            handler(wrapper.json, sender);
         }
         else
         {
@@ -48,36 +48,37 @@ public class ServerMessageRouter
         }
     }
 
-    private void HandleStartGameRequest(TcpClient sender)
+    private void HandleHello(string json, TcpClient sender)
     {
-        if (!connectionManager.TryGetId(sender, out int playerId))
-            return;
-
-        OnStartGameRequested?.Invoke(playerId);
-    }
-
-    private void HandleHello(TcpClient sender)
-    {
-        int assignedId = connectionManager.RegisterClient(sender);
-
-        if (!players.Contains(assignedId))
-        {
-            players.Add(assignedId);
-        }
+        int id = connectionManager.RegisterClient(sender);
 
         if (hostPlayerId == -1)
-        {
-            hostPlayerId = assignedId;
-        }
+            hostPlayerId = id;
 
         AssignIdMessage assign = new AssignIdMessage
         {
-            playerId = assignedId
+            playerId = id
         };
 
         SendToClient(sender, assign);
 
-        SendPlayerList();
+        OnClientConnected?.Invoke(sender, id);
+
+        BroadcastPlayerList();
+    }
+
+    private void HandleStartGame(string json, TcpClient sender)
+    {
+        if (!connectionManager.TryGetId(sender, out int id))
+            return;
+
+        OnStartGameRequested?.Invoke(id);
+    }
+
+    private void HandleMove(string json, TcpClient sender)
+    {
+        var msg = JsonUtility.FromJson<MoveMessage>(json);
+        OnMoveReceived?.Invoke(sender, msg);
     }
 
     public void HandleDisconnect(TcpClient client)
@@ -86,14 +87,12 @@ public class ServerMessageRouter
 
         connectionManager.RemoveClient(client);
 
-        players.Remove(id);
-
         if (id == hostPlayerId)
-        {
             hostPlayerId = -1;
-        }
 
-        SendPlayerList();
+        OnClientDisconnected?.Invoke(client, id);
+
+        BroadcastPlayerList();
     }
 
     private void SendToClient(TcpClient client, NetMessage msg)
@@ -122,11 +121,20 @@ public class ServerMessageRouter
         _ = server.Broadcast(json);
     }
 
-    private void SendPlayerList()
+    private void BroadcastPlayerList()
     {
+        List<int> ids = new List<int>();
+
+        foreach (var kvp in connectionManager.GetType()
+                     .GetField("clientIds", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
+                     .GetValue(connectionManager) as Dictionary<TcpClient, int>)
+        {
+            ids.Add(kvp.Value);
+        }
+
         PlayerListMessage msg = new PlayerListMessage
         {
-            playerIds = players.ToArray()
+            playerIds = ids.ToArray()
         };
 
         Broadcast(msg);
@@ -138,6 +146,7 @@ public class ServerMessageRouter
         if (msg is PlayerListMessage) return MessageType.PlayerList;
         if (msg is AssignIdMessage) return MessageType.AssignId;
         if (msg is HelloMessage) return MessageType.Hello;
+        if (msg is MoveMessage) return MessageType.Move;
 
         throw new Exception("Tipo no registrado: " + msg.GetType());
     }
