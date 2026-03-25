@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class GameClient
@@ -8,7 +7,8 @@ public class GameClient
     private GameState state;
     private GameLogic logic;
 
-    private Dictionary<Type, IMessageHandler> handlers = new();
+    private MessageDispatcher dispatcher;
+    private SnapshotProcessor snapshotProcessor;
 
     public GameState State => state;
     public GameLogic Logic => logic;
@@ -23,6 +23,9 @@ public class GameClient
         state = new GameState();
         logic = new GameLogic(state);
 
+        dispatcher = new MessageDispatcher(this);
+        snapshotProcessor = new SnapshotProcessor(state, logic);
+
         RegisterHandlers();
 
         transport.OnMessage += HandleMessage;
@@ -31,10 +34,10 @@ public class GameClient
 
     private void RegisterHandlers()
     {
-        handlers[typeof(AssignIdMessage)] = new AssignIdHandler();
-        handlers[typeof(PlayerListMessage)] = new PlayerListHandler();
-        handlers[typeof(MoveMessage)] = new MoveHandler();
-        handlers[typeof(StartGameMessage)] = new StartGameHandler();
+        dispatcher.Register<AssignIdMessage>(new AssignIdHandler());
+        dispatcher.Register<PlayerListMessage>(new PlayerListHandler());
+        dispatcher.Register<MoveMessage>(new MoveHandler());
+        dispatcher.Register<StartGameMessage>(new StartGameHandler());
     }
 
     public void Start()
@@ -54,16 +57,7 @@ public class GameClient
 
     private void HandleMessage(NetMessage msg)
     {
-        var type = msg.GetType();
-
-        if (handlers.TryGetValue(type, out var handler))
-        {
-            handler.Handle(msg, this);
-        }
-        else
-        {
-            Debug.LogWarning("No handler for message: " + type);
-        }
+        dispatcher.Dispatch(msg);
     }
 
     private void HandleDisconnect()
@@ -80,30 +74,7 @@ public class GameClient
     {
         if (snapshot == null) return;
 
-        HashSet<int> ids = new HashSet<int>();
-
-        foreach (var p in snapshot.players)
-        {
-            ids.Add(p.id);
-
-            if (!state.Players.ContainsKey(p.id))
-                logic.OnPlayerConnected(p.id);
-
-            logic.OnPlayerMoved(p.id, p.x, p.y);
-        }
-
-        var toRemove = new List<int>();
-
-        foreach (var id in state.Players.Keys)
-        {
-            if (!ids.Contains(id))
-                toRemove.Add(id);
-        }
-
-        foreach (var id in toRemove)
-        {
-            logic.OnPlayerDisconnected(id);
-        }
+        snapshotProcessor.Apply(snapshot);
 
         if (snapshot.gameStarted)
         {
