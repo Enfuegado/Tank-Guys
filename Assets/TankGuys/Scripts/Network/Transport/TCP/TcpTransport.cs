@@ -3,7 +3,7 @@ using UnityEngine;
 
 public class TcpTransport : ITransport
 {
-    private ClientSystem clientSystem;
+    private TcpClientRuntime TcpClientRuntime;
     private MessageRouter router;
 
     public event Action<NetMessage> OnMessage;
@@ -33,9 +33,9 @@ public class TcpTransport : ITransport
             OnMessage?.Invoke(msg);
         });
 
-        clientSystem = new ClientSystem(router, new NetworkClient());
+        TcpClientRuntime = new TcpClientRuntime(router, new NetworkClient());
 
-        clientSystem.OnDisconnected += () =>
+        TcpClientRuntime.OnDisconnected += () =>
         {
             OnDisconnected?.Invoke();
         };
@@ -43,12 +43,12 @@ public class TcpTransport : ITransport
 
     public async void Start()
     {
-        await clientSystem.Connect("127.0.0.1", 7777);
+        await TcpClientRuntime.Connect("127.0.0.1", 7777);
     }
 
     public void Stop()
     {
-        clientSystem.Disconnect();
+        TcpClientRuntime.Disconnect();
     }
 
     public void Send(NetMessage message)
@@ -61,7 +61,7 @@ public class TcpTransport : ITransport
 
         string json = JsonUtility.ToJson(wrapper);
 
-        clientSystem.Send(json);
+        TcpClientRuntime.Send(json);
     }
 
     private MessageType GetMessageType(NetMessage msg)

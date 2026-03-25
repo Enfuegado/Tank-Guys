@@ -1,11 +1,11 @@
 using System.Collections.Generic;
 
-public class SnapshotProcessor
+public class GameSnapshotProcessor
 {
     private GameState state;
     private GameLogic logic;
 
-    public SnapshotProcessor(GameState state, GameLogic logic)
+    public GameSnapshotProcessor(GameState state, GameLogic logic)
     {
         this.state = state;
         this.logic = logic;

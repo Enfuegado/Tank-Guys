@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Net.Sockets;
 using UnityEngine;
 
-public class ServerMessageRouter
+public class ServerMessageProcessor
 {
     private INetworkServer server;
     private ConnectionManager connectionManager;
@@ -17,7 +17,7 @@ public class ServerMessageRouter
     public event Action<int> OnStartGameRequested;
     public event Action<TcpClient, MoveMessage> OnMoveReceived;
 
-    public ServerMessageRouter(ConnectionManager connectionManager)
+    public ServerMessageProcessor(ConnectionManager connectionManager)
     {
         this.connectionManager = connectionManager;
 

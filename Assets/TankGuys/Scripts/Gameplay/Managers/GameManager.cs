@@ -5,7 +5,7 @@ public class GameManager : MonoBehaviour
 {
     public static GameManager Instance;
 
-    private NetworkManagerBehaviour net;
+    private NetworkBootstrap net;
     private GameClient client;
 
     void Awake()
@@ -22,7 +22,7 @@ public class GameManager : MonoBehaviour
         SceneManager.sceneLoaded += OnSceneLoaded;
     }
 
-    public void Initialize(NetworkManagerBehaviour network)
+    public void Initialize(NetworkBootstrap network)
     {
         net = network;
         client = net.ActiveClient;
@@ -46,7 +46,7 @@ public class GameManager : MonoBehaviour
     {
         UnityMainThreadDispatcher.Instance().Enqueue(() =>
         {
-            NetworkManagerBehaviour.Instance.ResetNetwork();
+            NetworkBootstrap.Instance.ResetNetwork();
             SceneManager.LoadScene("MainMenu");
         });
     }

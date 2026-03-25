@@ -1,14 +1,14 @@
 using System;
 using System.Net.Sockets;
 
-public class ServerSystem
+public class TcpServerRuntime
 {
     private INetworkServer server;
-    private ServerMessageRouter router;
+    private ServerMessageProcessor router;
 
     public Action<string> OnDebug;
 
-    public ServerSystem(ServerMessageRouter router, INetworkServer server)
+    public TcpServerRuntime(ServerMessageProcessor router, INetworkServer server)
     {
         this.router = router;
         this.server = server;

@@ -1,20 +1,22 @@
 using System;
 
-public class ServerNetwork
+public class HostSession
 {
-    private ServerSystem serverSystem;
-    private ServerMessageRouter serverRouter;
+    private TcpServerRuntime TcpServerRuntime;
+    private ServerMessageProcessor serverRouter;
     private ConnectionManager connectionManager;
 
-    public ServerMessageRouter Router => serverRouter;
+    public ServerMessageProcessor Router => serverRouter;
 
-    public ServerNetwork()
+    public HostSession()
     {
         connectionManager = new ConnectionManager();
 
-        serverRouter = new ServerMessageRouter(connectionManager);
+        serverRouter = new ServerMessageProcessor(connectionManager);
 
-        serverSystem = new ServerSystem(serverRouter, new NetworkServer());
+        var networkServer = new NetworkServer();
+
+        TcpServerRuntime = new TcpServerRuntime(serverRouter, networkServer);
 
         WireLogic();
     }
@@ -34,11 +36,11 @@ public class ServerNetwork
 
     public void Start(int port)
     {
-        serverSystem.Start(port);
+        TcpServerRuntime.Start(port);
     }
 
     public void Stop()
     {
-        serverSystem.Stop();
+        TcpServerRuntime.Stop();
     }
 }

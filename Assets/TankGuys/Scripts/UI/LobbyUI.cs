@@ -28,7 +28,7 @@ public class LobbyUI : MonoBehaviour
 
     void UpdatePlayersUI()
     {
-        var state = NetworkManagerBehaviour.Instance.State;
+        var state = NetworkBootstrap.Instance.State;
 
         if (state == null) return;
 

@@ -25,7 +25,7 @@ public class MainMenuUI : MonoBehaviour
     {
         if (alreadyLoaded) return;
 
-        var state = NetworkManagerBehaviour.Instance.State;
+        var state = NetworkBootstrap.Instance.State;
 
         if (state != null && state.Players.Count > 0)
         {
@@ -41,7 +41,7 @@ public class MainMenuUI : MonoBehaviour
         connecting = true;
         statusText.text = "Creando sala...";
 
-        NetworkManagerBehaviour.Instance.CreateRoom();
+        NetworkBootstrap.Instance.CreateRoom();
     }
 
     private async void OnJoinClicked()
@@ -51,6 +51,6 @@ public class MainMenuUI : MonoBehaviour
         connecting = true;
         statusText.text = "Conectando...";
 
-        await NetworkManagerBehaviour.Instance.JoinRoom();
+        await NetworkBootstrap.Instance.JoinRoom();
     }
 }

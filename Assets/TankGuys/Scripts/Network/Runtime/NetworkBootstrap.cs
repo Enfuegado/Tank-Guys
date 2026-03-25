@@ -1,9 +1,9 @@
 using UnityEngine;
 using System.Threading.Tasks;
 
-public class NetworkManagerBehaviour : MonoBehaviour
+public class NetworkBootstrap : MonoBehaviour
 {
-    public static NetworkManagerBehaviour Instance;
+    public static NetworkBootstrap Instance;
 
     private HostNetwork host;
     private GameClient client;

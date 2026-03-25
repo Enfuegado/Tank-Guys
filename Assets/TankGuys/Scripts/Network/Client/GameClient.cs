@@ -8,7 +8,7 @@ public class GameClient
     private GameLogic logic;
 
     private MessageDispatcher dispatcher;
-    private SnapshotProcessor snapshotProcessor;
+    private GameSnapshotProcessor snapshotProcessor;
 
     public GameState State => state;
     public GameLogic Logic => logic;
@@ -24,7 +24,7 @@ public class GameClient
         logic = new GameLogic(state);
 
         dispatcher = new MessageDispatcher(this);
-        snapshotProcessor = new SnapshotProcessor(state, logic);
+        snapshotProcessor = new GameSnapshotProcessor(state, logic);
 
         RegisterHandlers();
 
@@ -34,10 +34,10 @@ public class GameClient
 
     private void RegisterHandlers()
     {
-        dispatcher.Register<AssignIdMessage>(new AssignIdHandler());
-        dispatcher.Register<PlayerListMessage>(new PlayerListHandler());
-        dispatcher.Register<MoveMessage>(new MoveHandler());
-        dispatcher.Register<StartGameMessage>(new StartGameHandler());
+        dispatcher.Register<AssignIdMessage>(new AssignIdMessageHandler());
+        dispatcher.Register<PlayerListMessage>(new PlayerListMessageHandler());
+        dispatcher.Register<MoveMessage>(new MoveMessageHandler());
+        dispatcher.Register<StartGameMessage>(new StartGameMessageHandler());
     }
 
     public void Start()

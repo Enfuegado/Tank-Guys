@@ -1,4 +1,4 @@
-public class AssignIdHandler : IMessageHandler
+public class AssignIdMessageHandler : IMessageHandler
 {
     public void Handle(NetMessage message, GameClient client)
     {

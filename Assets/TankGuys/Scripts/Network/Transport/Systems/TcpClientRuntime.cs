@@ -2,7 +2,7 @@ using System;
 using System.Threading.Tasks;
 using UnityEngine;
 
-public class ClientSystem
+public class TcpClientRuntime
 {
     private INetworkClient client;
     private MessageRouter router;
@@ -10,7 +10,7 @@ public class ClientSystem
     public Action<string> OnDebug;
     public Action OnDisconnected;
 
-    public ClientSystem(MessageRouter router, INetworkClient client)
+    public TcpClientRuntime(MessageRouter router, INetworkClient client)
     {
         this.router = router;
         this.client = client;

@@ -2,8 +2,8 @@ using System.Net.Sockets;
 
 public class GameServer
 {
-    private ServerSystem serverSystem;
-    private ServerMessageRouter router;
+    private TcpServerRuntime TcpServerRuntime;
+    private ServerMessageProcessor router;
     private ConnectionManager connectionManager;
 
     private GameState state;
@@ -12,8 +12,8 @@ public class GameServer
     public GameServer()
     {
         connectionManager = new ConnectionManager();
-        router = new ServerMessageRouter(connectionManager);
-        serverSystem = new ServerSystem(router, new NetworkServer());
+        router = new ServerMessageProcessor(connectionManager);
+        TcpServerRuntime = new TcpServerRuntime(router, new NetworkServer());
 
         state = new GameState();
         logic = new GameLogic(state);
@@ -50,11 +50,11 @@ public class GameServer
 
     public void Start(int port)
     {
-        serverSystem.Start(port);
+        TcpServerRuntime.Start(port);
     }
 
     public void Stop()
     {
-        serverSystem.Stop();
+        TcpServerRuntime.Stop();
     }
 }
