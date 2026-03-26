@@ -7,5 +7,7 @@ public enum MessageType
     Move,
     Shoot,
     Damage,
-    PlayerState
+    PlayerState,
+    TurretRotation,
+    TankDirection
 }

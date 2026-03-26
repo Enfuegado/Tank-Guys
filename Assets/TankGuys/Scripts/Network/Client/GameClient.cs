@@ -40,6 +40,8 @@ public class GameClient
         dispatcher.Register<StartGameMessage>(new StartGameMessageHandler());
         dispatcher.Register<ShootMessage>(new ShootMessageHandler()); 
         dispatcher.Register<PlayerStateMessage>(new PlayerStateMessageHandler());
+        dispatcher.Register<TurretRotationMessage>(new TurretRotationMessageHandler());
+        dispatcher.Register<TankDirectionMessage>(new TankDirectionMessageHandler());
     }
 
     public void Start()

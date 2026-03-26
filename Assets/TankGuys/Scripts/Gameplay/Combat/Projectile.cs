@@ -9,6 +9,7 @@ public class Projectile : MonoBehaviour
     [SerializeField] private float lifetime = 3f;
 
     private float timer;
+    private bool hasHit = false;
 
     public void Initialize(int ownerId, Vector2 direction)
     {
@@ -18,6 +19,8 @@ public class Projectile : MonoBehaviour
 
     void Update()
     {
+        if (hasHit) return; 
+
         transform.position += (Vector3)(direction * speed * Time.deltaTime);
 
         timer += Time.deltaTime;
@@ -29,19 +32,25 @@ public class Projectile : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D other)
     {
+        if (hasHit) return;
+
         var player = other.GetComponent<PlayerTag>();
         if (player == null) return;
 
         if (player.PlayerId == ownerId)
             return;
 
-        var net = NetworkBootstrap.Instance;
+        hasHit = true;
 
-        net.Send(new DamageMessage
+        if (NetworkBootstrap.Instance.IsHost)
         {
-            targetId = player.PlayerId
-        });
+            NetworkBootstrap.Instance.Send(new DamageMessage
+            {
+                targetId = player.PlayerId
+            });
+        }
 
+        gameObject.SetActive(false);
         Destroy(gameObject);
     }
 }

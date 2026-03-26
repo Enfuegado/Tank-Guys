@@ -35,7 +35,16 @@ public class GameLogic
         float speed = 5f;
 
         Vector2 input = new Vector2(x, y);
-        player.Position += input * speed * UnityEngine.Time.deltaTime;
+        Vector2 newPos = player.Position + input * speed * UnityEngine.Time.deltaTime;
+
+        float arenaRadius = 8f;
+
+        if (newPos.magnitude > arenaRadius)
+        {
+            newPos = newPos.normalized * arenaRadius;
+        }
+
+        player.Position = newPos;
     }
 
     public void OnPlayerShoot(int id, float dirX, float dirY)

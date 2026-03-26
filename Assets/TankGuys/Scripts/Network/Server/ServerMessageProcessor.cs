@@ -18,6 +18,8 @@ public class ServerMessageProcessor
     public event Action<TcpClient, MoveMessage> OnMoveReceived;
     public event Action<TcpClient, ShootMessage> OnShootReceived;
     public event Action<TcpClient, DamageMessage> OnDamageReceived;
+    public event Action<TcpClient, TurretRotationMessage> OnTurretRotationReceived;
+    public event Action<TcpClient, TankDirectionMessage> OnTankDirectionReceived;
 
     public ServerMessageProcessor(ConnectionManager connectionManager)
     {
@@ -29,7 +31,9 @@ public class ServerMessageProcessor
             { MessageType.StartGame, HandleStartGame },
             { MessageType.Move, HandleMove },
             { MessageType.Shoot, HandleShoot },
-            { MessageType.Damage, HandleDamage } // 🔥 ESTE FALTABA
+            { MessageType.Damage, HandleDamage },
+            { MessageType.TurretRotation, HandleTurretRotation},
+            { MessageType.TankDirection, HandleTankDirection }
         };
     }
 
@@ -95,6 +99,16 @@ public class ServerMessageProcessor
     {
         var msg = JsonUtility.FromJson<DamageMessage>(json);
         OnDamageReceived?.Invoke(sender, msg);
+    }
+    private void HandleTurretRotation(string json, TcpClient sender)
+    {
+        var msg = JsonUtility.FromJson<TurretRotationMessage>(json);
+        OnTurretRotationReceived?.Invoke(sender, msg);
+    }
+    private void HandleTankDirection(string json, TcpClient sender)
+    {
+        var msg = JsonUtility.FromJson<TankDirectionMessage>(json);
+        OnTankDirectionReceived?.Invoke(sender, msg);
     }
 
     public void HandleDisconnect(TcpClient client)
@@ -168,6 +182,8 @@ public class ServerMessageProcessor
         if (msg is ShootMessage) return MessageType.Shoot;
         if (msg is DamageMessage) return MessageType.Damage;
         if (msg is PlayerStateMessage) return MessageType.PlayerState;
+        if (msg is TurretRotationMessage) return MessageType.TurretRotation;
+        if (msg is TankDirectionMessage) return MessageType.TankDirection;
 
         throw new Exception("Tipo no registrado: " + msg.GetType());
     }

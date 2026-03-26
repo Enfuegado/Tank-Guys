@@ -66,6 +66,14 @@ public class GameServer
                 status = (int)player.Status
             });
         };
+        router.OnTurretRotationReceived += (client, msg) =>
+        {
+            router.Broadcast(msg);
+        };
+        router.OnTankDirectionReceived += (client, msg) =>
+        {
+            router.Broadcast(msg);
+        };
     }
 
     public void Start(int port)

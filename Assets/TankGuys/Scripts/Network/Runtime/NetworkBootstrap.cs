@@ -8,6 +8,8 @@ public class NetworkBootstrap : MonoBehaviour
     private HostNetwork host;
     private GameClient client;
 
+    public bool IsHost => host != null;
+
     public GameState State
     {
         get

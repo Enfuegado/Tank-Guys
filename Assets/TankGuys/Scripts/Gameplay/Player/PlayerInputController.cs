@@ -21,8 +21,14 @@ public class PlayerInputController : MonoBehaviour
             initialized = true;
         }
 
+        if (!client.State.Players.TryGetValue(playerId, out var player))
+            return;
+
+        if (player.Status != PlayerStatus.Alive)
+            return;
+
         HandleMovement();
-        HandleShooting();
+        HandleShooting(player);
     }
 
     private void HandleMovement()
@@ -38,14 +44,13 @@ public class PlayerInputController : MonoBehaviour
         });
     }
 
-    private void HandleShooting()
+    private void HandleShooting(PlayerData player)
     {
         if (!Input.GetMouseButtonDown(0))
             return;
 
         Vector3 mouseWorld = Camera.main.ScreenToWorldPoint(Input.mousePosition);
 
-        var player = client.State.Players[playerId];
         Vector2 dir = (mouseWorld - new Vector3(player.Position.x, player.Position.y, 0)).normalized;
 
         client.Send(new ShootMessage

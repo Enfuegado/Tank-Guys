@@ -91,10 +91,17 @@ public class PlayerManager : MonoBehaviour
 
     private void UpdatePlayer(PlayerData data)
     {
-        if (playerObjects.TryGetValue(data.Id, out GameObject obj))
+        if (!playerObjects.TryGetValue(data.Id, out GameObject obj))
+            return;
+
+        if (data.Status == PlayerStatus.Spectator)
         {
-            obj.transform.position = new Vector3(data.Position.x, data.Position.y, 0);
+            Destroy(obj);
+            playerObjects.Remove(data.Id);
+            return;
         }
+
+        obj.transform.position = new Vector3(data.Position.x, data.Position.y, 0);
     }
 
     private void RemovePlayer(int id)

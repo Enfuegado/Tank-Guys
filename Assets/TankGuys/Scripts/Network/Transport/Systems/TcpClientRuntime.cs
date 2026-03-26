@@ -10,6 +10,8 @@ public class TcpClientRuntime
     public Action<string> OnDebug;
     public Action OnDisconnected;
 
+    private bool isDisconnecting = false;
+
     public TcpClientRuntime(MessageRouter router, INetworkClient client)
     {
         this.router = router;
@@ -18,27 +20,34 @@ public class TcpClientRuntime
 
     public async Task Connect(string ip, int port)
     {
-        client.OnMessageReceived = null;
-        client.OnDisconnected = null;
-
-        client.OnMessageReceived += OnMessageReceived;
-        client.OnDisconnected += HandleDisconnect;
-
-        await client.Connect(ip, port);
-
-        OnDebug?.Invoke("CLIENTE CONECTADO");
-
-        HelloMessage hello = new HelloMessage();
-
-        MessageWrapper wrapper = new MessageWrapper
+        try
         {
-            type = MessageType.Hello,
-            json = JsonUtility.ToJson(hello)
-        };
+            client.OnMessageReceived = null;
+            client.OnDisconnected = null;
 
-        string json = JsonUtility.ToJson(wrapper);
+            client.OnMessageReceived += OnMessageReceived;
+            client.OnDisconnected += HandleDisconnect;
 
-        await client.Send(json);
+            await client.Connect(ip, port);
+
+            OnDebug?.Invoke("CLIENTE CONECTADO");
+
+            HelloMessage hello = new HelloMessage();
+
+            MessageWrapper wrapper = new MessageWrapper
+            {
+                type = MessageType.Hello,
+                json = JsonUtility.ToJson(hello)
+            };
+
+            string json = JsonUtility.ToJson(wrapper);
+
+            await client.Send(json);
+        }
+        catch (Exception)
+        {
+            HandleDisconnect();
+        }
     }
 
     private void OnMessageReceived(string json)
@@ -52,8 +61,12 @@ public class TcpClientRuntime
 
     private void HandleDisconnect()
     {
+        if (isDisconnecting) return;
+        isDisconnecting = true;
+
         UnityMainThreadDispatcher.Instance().Enqueue(() =>
         {
+            OnDebug?.Invoke("CLIENTE DESCONECTADO");
             OnDisconnected?.Invoke();
         });
     }
@@ -66,11 +79,24 @@ public class TcpClientRuntime
             return;
         }
 
-        await client.Send(json);
+        try
+        {
+            await client.Send(json);
+        }
+        catch (Exception)
+        {
+            HandleDisconnect();
+        }
     }
 
     public void Disconnect()
     {
-        client?.Disconnect();
+        try
+        {
+            client?.Disconnect();
+        }
+        catch { }
+
+        HandleDisconnect();
     }
 }
