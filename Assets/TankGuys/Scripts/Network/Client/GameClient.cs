@@ -38,6 +38,8 @@ public class GameClient
         dispatcher.Register<PlayerListMessage>(new PlayerListMessageHandler());
         dispatcher.Register<MoveMessage>(new MoveMessageHandler());
         dispatcher.Register<StartGameMessage>(new StartGameMessageHandler());
+        dispatcher.Register<ShootMessage>(new ShootMessageHandler()); 
+        dispatcher.Register<PlayerStateMessage>(new PlayerStateMessageHandler());
     }
 
     public void Start()

@@ -46,6 +46,26 @@ public class GameServer
             logic.OnPlayerMoved(msg.playerId, msg.x, msg.y);
             router.Broadcast(msg);
         };
+
+        router.OnShootReceived += (client, msg) =>
+        {
+            logic.OnPlayerShoot(msg.playerId, msg.dirX, msg.dirY);
+            router.Broadcast(msg);
+        };
+
+        router.OnDamageReceived += (client, msg) =>
+        {
+            logic.DamagePlayer(msg.targetId);
+
+            var player = state.Players[msg.targetId];
+
+            router.Broadcast(new PlayerStateMessage
+            {
+                playerId = player.Id,
+                lives = player.Lives,
+                status = (int)player.Status
+            });
+        };
     }
 
     public void Start(int port)

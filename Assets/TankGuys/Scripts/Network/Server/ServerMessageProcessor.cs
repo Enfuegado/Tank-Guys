@@ -16,6 +16,8 @@ public class ServerMessageProcessor
     public event Action<TcpClient, int> OnClientDisconnected;
     public event Action<int> OnStartGameRequested;
     public event Action<TcpClient, MoveMessage> OnMoveReceived;
+    public event Action<TcpClient, ShootMessage> OnShootReceived;
+    public event Action<TcpClient, DamageMessage> OnDamageReceived;
 
     public ServerMessageProcessor(ConnectionManager connectionManager)
     {
@@ -25,7 +27,9 @@ public class ServerMessageProcessor
         {
             { MessageType.Hello, HandleHello },
             { MessageType.StartGame, HandleStartGame },
-            { MessageType.Move, HandleMove }
+            { MessageType.Move, HandleMove },
+            { MessageType.Shoot, HandleShoot },
+            { MessageType.Damage, HandleDamage } // 🔥 ESTE FALTABA
         };
     }
 
@@ -44,7 +48,7 @@ public class ServerMessageProcessor
         }
         else
         {
-            Debug.LogWarning("Tipo no manejado: " + wrapper.type);
+            Debug.LogError("Tipo no registrado: " + wrapper.type);
         }
     }
 
@@ -79,6 +83,18 @@ public class ServerMessageProcessor
     {
         var msg = JsonUtility.FromJson<MoveMessage>(json);
         OnMoveReceived?.Invoke(sender, msg);
+    }
+
+    private void HandleShoot(string json, TcpClient sender)
+    {
+        var msg = JsonUtility.FromJson<ShootMessage>(json);
+        OnShootReceived?.Invoke(sender, msg);
+    }
+
+    private void HandleDamage(string json, TcpClient sender)
+    {
+        var msg = JsonUtility.FromJson<DamageMessage>(json);
+        OnDamageReceived?.Invoke(sender, msg);
     }
 
     public void HandleDisconnect(TcpClient client)
@@ -120,14 +136,16 @@ public class ServerMessageProcessor
 
         _ = server.Broadcast(json);
     }
-
     private void BroadcastPlayerList()
     {
         List<int> ids = new List<int>();
 
-        foreach (var kvp in connectionManager.GetType()
-                     .GetField("clientIds", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
-                     .GetValue(connectionManager) as Dictionary<TcpClient, int>)
+        var field = connectionManager.GetType()
+            .GetField("clientIds", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+
+        var dict = field.GetValue(connectionManager) as Dictionary<System.Net.Sockets.TcpClient, int>;
+
+        foreach (var kvp in dict)
         {
             ids.Add(kvp.Value);
         }
@@ -147,6 +165,9 @@ public class ServerMessageProcessor
         if (msg is AssignIdMessage) return MessageType.AssignId;
         if (msg is HelloMessage) return MessageType.Hello;
         if (msg is MoveMessage) return MessageType.Move;
+        if (msg is ShootMessage) return MessageType.Shoot;
+        if (msg is DamageMessage) return MessageType.Damage;
+        if (msg is PlayerStateMessage) return MessageType.PlayerState;
 
         throw new Exception("Tipo no registrado: " + msg.GetType());
     }

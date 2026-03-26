@@ -133,7 +133,7 @@ GameObject:
   - component: {fileID: 51070625}
   - component: {fileID: 51070624}
   m_Layer: 0
-  m_Name: NetworkManagerBehaviour
+  m_Name: NetworkBootstrap
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

@@ -10,6 +10,7 @@ public class PlayerManager : MonoBehaviour
     private Dictionary<int, GameObject> playerObjects = new();
 
     private GameState state;
+    private SpawnManager spawnManager;
 
     void Awake()
     {
@@ -25,6 +26,7 @@ public class PlayerManager : MonoBehaviour
     public void Initialize(GameState gameState)
     {
         state = gameState;
+        spawnManager = FindObjectOfType<SpawnManager>();
     }
 
     void Update()
@@ -66,8 +68,24 @@ public class PlayerManager : MonoBehaviour
 
     private void SpawnPlayer(int id)
     {
-        GameObject obj = Instantiate(playerPrefab);
+        Vector2 spawnPos = spawnManager != null
+            ? spawnManager.GetSpawnPosition(id)
+            : Vector2.zero;
+
+        GameObject obj = Instantiate(playerPrefab, spawnPos, Quaternion.identity);
         obj.name = $"Player_{id}";
+
+        var tag = obj.GetComponent<PlayerTag>();
+        if (tag != null)
+        {
+            tag.PlayerId = id;
+        }
+
+        if (state.Players.TryGetValue(id, out var playerData))
+        {
+            playerData.Position = spawnPos;
+        }
+
         playerObjects[id] = obj;
     }
 
@@ -75,7 +93,7 @@ public class PlayerManager : MonoBehaviour
     {
         if (playerObjects.TryGetValue(data.Id, out GameObject obj))
         {
-            obj.transform.position = new Vector3(data.Position.x, 0, data.Position.y);
+            obj.transform.position = new Vector3(data.Position.x, data.Position.y, 0);
         }
     }
 

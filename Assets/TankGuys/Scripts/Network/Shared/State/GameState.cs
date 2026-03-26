@@ -7,11 +7,15 @@ public class GameState
 
     public int LocalPlayerId = -1;
 
+    public GamePhase Phase = GamePhase.Lobby;
+
+    public int? WinnerId = null;
+
     public void AddPlayer(int id)
     {
         if (!Players.ContainsKey(id))
         {
-            Players[id] = new PlayerData { Id = id };
+            Players[id] = new PlayerData(id);
         }
     }
 
@@ -54,10 +58,4 @@ public class GameState
             RemovePlayer(id);
         }
     }
-}
-
-public class PlayerData
-{
-    public int Id;
-    public Vector2 Position;
 }

@@ -33,6 +33,20 @@ public class TcpTransport : ITransport
             OnMessage?.Invoke(msg);
         });
 
+        router.Register<ShootMessage>(MessageType.Shoot, msg =>
+        {
+            OnMessage?.Invoke(msg);
+        });
+
+        router.Register<DamageMessage>(MessageType.Damage, msg =>
+        {
+            OnMessage?.Invoke(msg);
+        });
+        router.Register<PlayerStateMessage>(MessageType.PlayerState, msg =>
+        {
+            OnMessage?.Invoke(msg);
+        });
+
         TcpClientRuntime = new TcpClientRuntime(router, new NetworkClient());
 
         TcpClientRuntime.OnDisconnected += () =>
@@ -71,6 +85,8 @@ public class TcpTransport : ITransport
         if (msg is AssignIdMessage) return MessageType.AssignId;
         if (msg is HelloMessage) return MessageType.Hello;
         if (msg is MoveMessage) return MessageType.Move;
+        if (msg is ShootMessage) return MessageType.Shoot;
+        if (msg is DamageMessage) return MessageType.Damage;
 
         throw new Exception("Tipo no registrado: " + msg.GetType());
     }

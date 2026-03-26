@@ -4,5 +4,8 @@ public enum MessageType
     AssignId,
     PlayerList,
     StartGame,
-    Move
+    Move,
+    Shoot,
+    Damage,
+    PlayerState
 }
