@@ -10,6 +10,8 @@ public class GameServer
     private GameState state;
     private GameLogic logic;
 
+    private bool gameEndedSent = false;
+
     public GameServer()
     {
         connectionManager = new ConnectionManager();
@@ -18,6 +20,8 @@ public class GameServer
 
         state = new GameState();
         logic = new GameLogic(state);
+
+        gameEndedSent = false;
 
         Wire();
     }
@@ -66,6 +70,16 @@ public class GameServer
                 lives = player.Lives,
                 status = (int)player.Status
             });
+
+            if (!gameEndedSent && state.Phase == GamePhase.Ended && state.WinnerId.HasValue)
+            {
+                gameEndedSent = true;
+
+                router.Broadcast(new GameEndMessage
+                {
+                    winnerId = state.WinnerId.Value
+                });
+            }
         };
 
         router.OnTurretRotationReceived += (client, msg) =>
@@ -86,6 +100,9 @@ public class GameServer
             int hostId = router.GetHostId();
 
             if (id != hostId)
+                return;
+
+            if (state.Phase == GamePhase.Ended)
                 return;
 
             router.Broadcast(msg);

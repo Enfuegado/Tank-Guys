@@ -43,6 +43,7 @@ public class GameClient
         dispatcher.Register<TurretRotationMessage>(new TurretRotationMessageHandler());
         dispatcher.Register<TankDirectionMessage>(new TankDirectionMessageHandler());
         dispatcher.Register<PauseMessage>(new PauseMessageHandler());
+        dispatcher.Register<GameEndMessage>(new GameEndMessageHandler());
     }
 
     public void Start()

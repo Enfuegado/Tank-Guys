@@ -87,6 +87,7 @@ public class PlayerManager : MonoBehaviour
         }
 
         playerObjects[id] = obj;
+        Debug.Log("SPAWN PLAYER: " + id);
     }
 
     private void UpdatePlayer(PlayerData data)
@@ -102,6 +103,7 @@ public class PlayerManager : MonoBehaviour
         }
 
         obj.transform.position = new Vector3(data.Position.x, data.Position.y, 0);
+        Debug.Log("UPDATE PLAYER: " + data.Id + " STATUS: " + data.Status);
     }
 
     private void RemovePlayer(int id)

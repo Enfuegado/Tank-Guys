@@ -23,6 +23,7 @@ public class TcpTransport : ITransport
         router.Register<TurretRotationMessage>(MessageType.TurretRotation, msg => OnMessage?.Invoke(msg));
         router.Register<TankDirectionMessage>(MessageType.TankDirection, msg => OnMessage?.Invoke(msg));
         router.Register<PauseMessage>(MessageType.Pause, msg => OnMessage?.Invoke(msg));
+        router.Register<GameEndMessage>(MessageType.GameEnd, msg => OnMessage?.Invoke(msg));
 
         TcpClientRuntime = new TcpClientRuntime(router, new NetworkClient());
 
@@ -67,6 +68,8 @@ public class TcpTransport : ITransport
         if (msg is TurretRotationMessage) return MessageType.TurretRotation;
         if (msg is TankDirectionMessage) return MessageType.TankDirection;
         if (msg is PauseMessage) return MessageType.Pause;
+        if (msg is GameEndMessage) return MessageType.GameEnd;
+        
 
         throw new Exception("Tipo no registrado: " + msg.GetType());
     }

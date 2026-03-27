@@ -6,13 +6,15 @@ public class PauseInputController : MonoBehaviour
     private bool isHost = false;
     private bool isPaused = false;
 
+    private GameClient client;
+
     void Update()
     {
         if (!initialized)
         {
             if (NetworkBootstrap.Instance == null) return;
 
-            var client = NetworkBootstrap.Instance.ActiveClient;
+            client = NetworkBootstrap.Instance.ActiveClient;
             if (client == null) return;
 
             if (client.State.LocalPlayerId == -1) return;
@@ -27,20 +29,16 @@ public class PauseInputController : MonoBehaviour
             }
         }
 
+        if (client.State.Phase == GamePhase.Ended)
+            return;
+
         if (Input.GetKeyDown(KeyCode.P))
         {
-            TogglePause();
+            NetworkBootstrap.Instance.Send(new PauseMessage
+            {
+                isPaused = !isPaused
+            });
         }
-    }
-
-    private void TogglePause()
-    {
-        isPaused = !isPaused;
-
-        NetworkBootstrap.Instance.Send(new PauseMessage
-        {
-            isPaused = isPaused
-        });
     }
 
     public void ApplyPauseState(bool paused)

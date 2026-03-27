@@ -10,5 +10,6 @@ public enum MessageType
     PlayerState,
     TurretRotation,
     TankDirection,
-    Pause
+    Pause,
+    GameEnd
 }

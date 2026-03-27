@@ -2,13 +2,19 @@ using UnityEngine;
 
 public class PlayerController : MonoBehaviour
 {
-    [SerializeField] private Transform turret;
-
+    private Transform turret;
     private PlayerTag tag;
 
     void Start()
     {
         tag = GetComponent<PlayerTag>();
+
+        turret = transform.Find("Turret");
+
+        if (turret == null)
+        {
+            Debug.LogError("Turret no encontrada en " + gameObject.name);
+        }
     }
 
     void Update()
@@ -19,7 +25,7 @@ public class PlayerController : MonoBehaviour
         var client = net.ActiveClient;
         if (client == null) return;
 
-        if (client.State.Phase == GamePhase.Paused)
+        if (client.State.IsGameplayBlocked())
             return;
 
         if (!client.State.Players.TryGetValue(tag.PlayerId, out var player))
@@ -64,7 +70,9 @@ public class PlayerController : MonoBehaviour
     private void ApplyRemote(PlayerData player)
     {
         ApplyRotation(player);
-        turret.rotation = Quaternion.Euler(0, 0, player.TurretRotation);
+
+        if (turret != null)
+            turret.rotation = Quaternion.Euler(0, 0, player.TurretRotation);
     }
 
     private void ApplyRotation(PlayerData player)
@@ -75,6 +83,8 @@ public class PlayerController : MonoBehaviour
 
     private void HandleTurret(PlayerData player)
     {
+        if (turret == null) return;
+
         Vector3 mouseWorld = Camera.main.ScreenToWorldPoint(Input.mousePosition);
         Vector2 dir = mouseWorld - turret.position;
 

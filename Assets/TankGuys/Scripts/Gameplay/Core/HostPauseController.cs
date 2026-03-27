@@ -9,6 +9,9 @@ public class HostPauseController : MonoBehaviour
 
     private bool isPaused = false;
 
+    private float lastPauseTime = 0f;
+    private float cooldown = 0.2f;
+
     void Start()
     {
         StartCoroutine(Initialize());
@@ -34,11 +37,19 @@ public class HostPauseController : MonoBehaviour
 
     public void OnPauseClicked()
     {
+        var client = NetworkBootstrap.Instance.ActiveClient;
+
         if (!NetworkBootstrap.Instance.IsHost)
             return;
 
-        // ❌ ya NO invertimos aquí
-        // solo enviamos lo contrario del estado actual REAL
+        if (client.State.Phase == GamePhase.Ended)
+            return;
+
+        if (Time.time - lastPauseTime < cooldown)
+            return;
+
+        lastPauseTime = Time.time;
+
         NetworkBootstrap.Instance.Send(new PauseMessage
         {
             isPaused = !isPaused

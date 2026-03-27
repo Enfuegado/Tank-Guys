@@ -36,6 +36,7 @@ public class ServerMessageProcessor
             { MessageType.TurretRotation, HandleTurretRotation },
             { MessageType.TankDirection, HandleTankDirection },
             { MessageType.Pause, HandlePause }
+            
         };
     }
 
@@ -196,6 +197,7 @@ public class ServerMessageProcessor
         if (msg is TurretRotationMessage) return MessageType.TurretRotation;
         if (msg is TankDirectionMessage) return MessageType.TankDirection;
         if (msg is PauseMessage) return MessageType.Pause;
+        if (msg is GameEndMessage) return MessageType.GameEnd;
 
         throw new Exception("Tipo no registrado: " + msg.GetType());
     }

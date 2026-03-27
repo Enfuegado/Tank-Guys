@@ -7,6 +7,9 @@ public class PauseMessageHandler : IMessageHandler
         var msg = message as PauseMessage;
         if (msg == null) return;
 
+        if (client.State.Phase == GamePhase.Ended)
+            return;
+
         Time.timeScale = msg.isPaused ? 0f : 1f;
 
         client.State.Phase = msg.isPaused ? GamePhase.Paused : GamePhase.Playing;
