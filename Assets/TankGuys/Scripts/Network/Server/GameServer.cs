@@ -1,3 +1,4 @@
+using System;
 using System.Net.Sockets;
 
 public class GameServer
@@ -66,12 +67,27 @@ public class GameServer
                 status = (int)player.Status
             });
         };
+
         router.OnTurretRotationReceived += (client, msg) =>
         {
             router.Broadcast(msg);
         };
+
         router.OnTankDirectionReceived += (client, msg) =>
         {
+            router.Broadcast(msg);
+        };
+
+        router.OnPauseReceived += (client, msg) =>
+        {
+            if (!connectionManager.TryGetId(client, out int id))
+                return;
+
+            int hostId = router.GetHostId();
+
+            if (id != hostId)
+                return;
+
             router.Broadcast(msg);
         };
     }

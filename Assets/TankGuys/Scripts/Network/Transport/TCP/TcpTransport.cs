@@ -21,7 +21,8 @@ public class TcpTransport : ITransport
         router.Register<DamageMessage>(MessageType.Damage, msg => OnMessage?.Invoke(msg));
         router.Register<PlayerStateMessage>(MessageType.PlayerState, msg => OnMessage?.Invoke(msg));
         router.Register<TurretRotationMessage>(MessageType.TurretRotation, msg => OnMessage?.Invoke(msg));
-        router.Register<TankDirectionMessage>(MessageType.TankDirection, msg =>{OnMessage?.Invoke(msg);});
+        router.Register<TankDirectionMessage>(MessageType.TankDirection, msg => OnMessage?.Invoke(msg));
+        router.Register<PauseMessage>(MessageType.Pause, msg => OnMessage?.Invoke(msg));
 
         TcpClientRuntime = new TcpClientRuntime(router, new NetworkClient());
 
@@ -65,6 +66,7 @@ public class TcpTransport : ITransport
         if (msg is PlayerStateMessage) return MessageType.PlayerState;
         if (msg is TurretRotationMessage) return MessageType.TurretRotation;
         if (msg is TankDirectionMessage) return MessageType.TankDirection;
+        if (msg is PauseMessage) return MessageType.Pause;
 
         throw new Exception("Tipo no registrado: " + msg.GetType());
     }

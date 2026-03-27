@@ -53,6 +53,8 @@ public class GameManager : MonoBehaviour
 
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
+        Time.timeScale = 1f;
+
         var playerManager = FindObjectOfType<PlayerManager>();
 
         if (playerManager != null && net != null)

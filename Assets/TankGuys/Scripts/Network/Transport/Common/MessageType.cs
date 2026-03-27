@@ -9,5 +9,6 @@ public enum MessageType
     Damage,
     PlayerState,
     TurretRotation,
-    TankDirection
+    TankDirection,
+    Pause
 }

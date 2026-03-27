@@ -21,6 +21,9 @@ public class PlayerInputController : MonoBehaviour
             initialized = true;
         }
 
+        if (client.State.Phase == GamePhase.Paused)
+            return;
+
         if (!client.State.Players.TryGetValue(playerId, out var player))
             return;
 

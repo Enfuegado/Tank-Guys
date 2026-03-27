@@ -19,6 +19,9 @@ public class PlayerController : MonoBehaviour
         var client = net.ActiveClient;
         if (client == null) return;
 
+        if (client.State.Phase == GamePhase.Paused)
+            return;
+
         if (!client.State.Players.TryGetValue(tag.PlayerId, out var player))
             return;
 

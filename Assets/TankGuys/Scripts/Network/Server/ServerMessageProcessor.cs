@@ -20,6 +20,7 @@ public class ServerMessageProcessor
     public event Action<TcpClient, DamageMessage> OnDamageReceived;
     public event Action<TcpClient, TurretRotationMessage> OnTurretRotationReceived;
     public event Action<TcpClient, TankDirectionMessage> OnTankDirectionReceived;
+    public event Action<TcpClient, PauseMessage> OnPauseReceived;
 
     public ServerMessageProcessor(ConnectionManager connectionManager)
     {
@@ -32,8 +33,9 @@ public class ServerMessageProcessor
             { MessageType.Move, HandleMove },
             { MessageType.Shoot, HandleShoot },
             { MessageType.Damage, HandleDamage },
-            { MessageType.TurretRotation, HandleTurretRotation},
-            { MessageType.TankDirection, HandleTankDirection }
+            { MessageType.TurretRotation, HandleTurretRotation },
+            { MessageType.TankDirection, HandleTankDirection },
+            { MessageType.Pause, HandlePause }
         };
     }
 
@@ -100,15 +102,23 @@ public class ServerMessageProcessor
         var msg = JsonUtility.FromJson<DamageMessage>(json);
         OnDamageReceived?.Invoke(sender, msg);
     }
+
     private void HandleTurretRotation(string json, TcpClient sender)
     {
         var msg = JsonUtility.FromJson<TurretRotationMessage>(json);
         OnTurretRotationReceived?.Invoke(sender, msg);
     }
+
     private void HandleTankDirection(string json, TcpClient sender)
     {
         var msg = JsonUtility.FromJson<TankDirectionMessage>(json);
         OnTankDirectionReceived?.Invoke(sender, msg);
+    }
+
+    private void HandlePause(string json, TcpClient sender)
+    {
+        var msg = JsonUtility.FromJson<PauseMessage>(json);
+        OnPauseReceived?.Invoke(sender, msg);
     }
 
     public void HandleDisconnect(TcpClient client)
@@ -150,6 +160,7 @@ public class ServerMessageProcessor
 
         _ = server.Broadcast(json);
     }
+
     private void BroadcastPlayerList()
     {
         List<int> ids = new List<int>();
@@ -184,6 +195,7 @@ public class ServerMessageProcessor
         if (msg is PlayerStateMessage) return MessageType.PlayerState;
         if (msg is TurretRotationMessage) return MessageType.TurretRotation;
         if (msg is TankDirectionMessage) return MessageType.TankDirection;
+        if (msg is PauseMessage) return MessageType.Pause;
 
         throw new Exception("Tipo no registrado: " + msg.GetType());
     }

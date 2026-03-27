@@ -38,10 +38,11 @@ public class GameClient
         dispatcher.Register<PlayerListMessage>(new PlayerListMessageHandler());
         dispatcher.Register<MoveMessage>(new MoveMessageHandler());
         dispatcher.Register<StartGameMessage>(new StartGameMessageHandler());
-        dispatcher.Register<ShootMessage>(new ShootMessageHandler()); 
+        dispatcher.Register<ShootMessage>(new ShootMessageHandler());
         dispatcher.Register<PlayerStateMessage>(new PlayerStateMessageHandler());
         dispatcher.Register<TurretRotationMessage>(new TurretRotationMessageHandler());
         dispatcher.Register<TankDirectionMessage>(new TankDirectionMessageHandler());
+        dispatcher.Register<PauseMessage>(new PauseMessageHandler());
     }
 
     public void Start()
