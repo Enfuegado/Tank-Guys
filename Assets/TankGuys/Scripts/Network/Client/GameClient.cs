@@ -1,5 +1,4 @@
 using System;
-using UnityEngine;
 
 public class GameClient
 {
@@ -44,6 +43,7 @@ public class GameClient
         dispatcher.Register<TankDirectionMessage>(new TankDirectionMessageHandler());
         dispatcher.Register<PauseMessage>(new PauseMessageHandler());
         dispatcher.Register<GameEndMessage>(new GameEndMessageHandler());
+        dispatcher.Register<ConnectionRejectedMessage>(new ConnectionRejectedHandler());
     }
 
     public void Start()

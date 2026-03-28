@@ -13,5 +13,6 @@ public enum MessageType
     Pause,
     GameEnd,
     Kick,
-    Ban
+    Ban,
+    ConnectionRejected
 }

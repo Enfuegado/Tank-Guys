@@ -24,6 +24,7 @@ public class TcpTransport : ITransport
         router.Register<TankDirectionMessage>(MessageType.TankDirection, msg => OnMessage?.Invoke(msg));
         router.Register<PauseMessage>(MessageType.Pause, msg => OnMessage?.Invoke(msg));
         router.Register<GameEndMessage>(MessageType.GameEnd, msg => OnMessage?.Invoke(msg));
+        router.Register<ConnectionRejectedMessage>(MessageType.ConnectionRejected, msg => OnMessage?.Invoke(msg));
 
         TcpClientRuntime = new TcpClientRuntime(router, new NetworkClient());
 
@@ -70,8 +71,8 @@ public class TcpTransport : ITransport
         if (msg is PauseMessage) return MessageType.Pause;
         if (msg is GameEndMessage) return MessageType.GameEnd;
         if (msg is KickPlayerMessage) return MessageType.Kick;
-        if (msg is BanPlayerMessage) return MessageType.Ban;   
-        
+        if (msg is BanPlayerMessage) return MessageType.Ban;
+        if (msg is ConnectionRejectedMessage) return MessageType.ConnectionRejected;
 
         throw new Exception("Tipo no registrado: " + msg.GetType());
     }

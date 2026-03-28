@@ -11,6 +11,7 @@ public class TcpClientRuntime
     public Action OnDisconnected;
 
     private bool isDisconnecting = false;
+    private bool receivedRejection = false;
 
     public TcpClientRuntime(MessageRouter router, INetworkClient client)
     {
@@ -52,6 +53,11 @@ public class TcpClientRuntime
 
     private void OnMessageReceived(string json)
     {
+        if (json.Contains("ConnectionRejected"))
+        {
+            receivedRejection = true;
+        }
+
         UnityMainThreadDispatcher.Instance().Enqueue(() =>
         {
             OnDebug?.Invoke("CLIENT RECIBE: " + json);
@@ -67,6 +73,10 @@ public class TcpClientRuntime
         UnityMainThreadDispatcher.Instance().Enqueue(() =>
         {
             OnDebug?.Invoke("CLIENTE DESCONECTADO");
+
+            if (receivedRejection)
+                return;
+
             OnDisconnected?.Invoke();
         });
     }

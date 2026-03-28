@@ -8,6 +8,8 @@ public class GameManager : MonoBehaviour
     private NetworkBootstrap net;
     private GameClient client;
 
+    private bool connectionRejected = false;
+
     void Awake()
     {
         if (Instance != null)
@@ -34,6 +36,11 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    public void MarkConnectionRejected()
+    {
+        connectionRejected = true;
+    }
+
     private void HandleStartGame()
     {
         UnityMainThreadDispatcher.Instance().Enqueue(() =>
@@ -44,11 +51,18 @@ public class GameManager : MonoBehaviour
 
     private void HandleDisconnect()
     {
+        if (connectionRejected)
+            return;
+
         UnityMainThreadDispatcher.Instance().Enqueue(() =>
         {
             NetworkBootstrap.Instance.ResetNetwork();
             SceneManager.LoadScene("MainMenu");
         });
+    }
+    public void ResetConnectionState()
+    {
+        connectionRejected = false;
     }
 
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)

@@ -8,5 +8,10 @@ public class AssignIdMessageHandler : IMessageHandler
 
         client.State.LocalPlayerId = msg.playerId;
         client.Logic.OnPlayerConnected(msg.playerId);
+
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.ResetConnectionState();
+        }
     }
 }

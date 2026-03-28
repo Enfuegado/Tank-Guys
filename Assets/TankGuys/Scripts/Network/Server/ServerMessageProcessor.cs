@@ -66,17 +66,35 @@ public class ServerMessageProcessor
 
     private void HandleHello(string json, TcpClient sender)
     {
+        string ip = ((System.Net.IPEndPoint)sender.Client.RemoteEndPoint).Address.ToString();
+
         if (gameState.Phase != GamePhase.Lobby)
         {
-            sender.Close();
+            SendToClient(sender, new ConnectionRejectedMessage
+            {
+                reason = "La partida ya ha comenzado"
+            });
+
+            System.Threading.Tasks.Task.Delay(100).ContinueWith(_ =>
+            {
+                try { sender.Close(); } catch {}
+            });
+
             return;
         }
 
-        string ip = ((System.Net.IPEndPoint)sender.Client.RemoteEndPoint).Address.ToString();
-
         if (bannedIPs.Contains(ip))
         {
-            sender.Close();
+            SendToClient(sender, new ConnectionRejectedMessage
+            {
+                reason = "Has sido baneado del host"
+            });
+
+            System.Threading.Tasks.Task.Delay(100).ContinueWith(_ =>
+            {
+                try { sender.Close(); } catch {}
+            });
+
             return;
         }
 
@@ -273,6 +291,7 @@ public class ServerMessageProcessor
         if (msg is GameEndMessage) return MessageType.GameEnd;
         if (msg is KickPlayerMessage) return MessageType.Kick;
         if (msg is BanPlayerMessage) return MessageType.Ban;
+        if (msg is ConnectionRejectedMessage) return MessageType.ConnectionRejected;
 
         throw new Exception("Tipo no registrado: " + msg.GetType());
     }
