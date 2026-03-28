@@ -7,6 +7,7 @@ public class ServerMessageProcessor
 {
     private INetworkServer server;
     private ConnectionManager connectionManager;
+    private GameState gameState;
 
     private Dictionary<MessageType, Action<string, TcpClient>> handlers;
 
@@ -24,9 +25,10 @@ public class ServerMessageProcessor
     public event Action<TcpClient, TankDirectionMessage> OnTankDirectionReceived;
     public event Action<TcpClient, PauseMessage> OnPauseReceived;
 
-    public ServerMessageProcessor(ConnectionManager connectionManager)
+    public ServerMessageProcessor(ConnectionManager connectionManager, GameState state)
     {
         this.connectionManager = connectionManager;
+        this.gameState = state;
 
         handlers = new Dictionary<MessageType, Action<string, TcpClient>>
         {
@@ -64,6 +66,12 @@ public class ServerMessageProcessor
 
     private void HandleHello(string json, TcpClient sender)
     {
+        if (gameState.Phase != GamePhase.Lobby)
+        {
+            sender.Close();
+            return;
+        }
+
         string ip = ((System.Net.IPEndPoint)sender.Client.RemoteEndPoint).Address.ToString();
 
         if (bannedIPs.Contains(ip))

@@ -18,13 +18,13 @@ public class GameServer
 
         var networkServer = new NetworkServer();
 
-        router = new ServerMessageProcessor(connectionManager);
+        state = new GameState();
+        logic = new GameLogic(state);
+
+        router = new ServerMessageProcessor(connectionManager, state);
         router.Initialize(networkServer);
 
         TcpServerRuntime = new TcpServerRuntime(router, networkServer);
-
-        state = new GameState();
-        logic = new GameLogic(state);
 
         gameEndedSent = false;
 
@@ -42,6 +42,8 @@ public class GameServer
 
             if (state.Players.Count < 2)
                 return;
+
+            state.Phase = GamePhase.Playing;
 
             router.Broadcast(new StartGameMessage());
         };
