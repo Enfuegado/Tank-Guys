@@ -1,23 +1,21 @@
 using UnityEngine;
-using TMPro;
 using UnityEngine.UI;
+using TMPro;
+using System.Collections;
 
 public class HostPauseController : MonoBehaviour
 {
     [SerializeField] private Button pauseButton;
     [SerializeField] private TextMeshProUGUI buttonText;
 
-    private bool isPaused = false;
-
-    private float lastPauseTime = 0f;
-    private float cooldown = 0.2f;
+    private GameClient client;
 
     void Start()
     {
         StartCoroutine(Initialize());
     }
 
-    private System.Collections.IEnumerator Initialize()
+    private IEnumerator Initialize()
     {
         while (NetworkBootstrap.Instance == null ||
                NetworkBootstrap.Instance.ActiveClient == null ||
@@ -26,29 +24,28 @@ public class HostPauseController : MonoBehaviour
             yield return null;
         }
 
+        client = NetworkBootstrap.Instance.ActiveClient;
+
         if (!NetworkBootstrap.Instance.IsHost)
         {
             gameObject.SetActive(false);
             yield break;
         }
 
-        UpdateText();
+        pauseButton.onClick.RemoveAllListeners();
+        pauseButton.onClick.AddListener(OnPauseClicked);
+
+        UpdateText(false);
     }
 
     public void OnPauseClicked()
     {
-        var client = NetworkBootstrap.Instance.ActiveClient;
-
-        if (!NetworkBootstrap.Instance.IsHost)
-            return;
+        if (client == null) return;
 
         if (client.State.Phase == GamePhase.Ended)
             return;
 
-        if (Time.time - lastPauseTime < cooldown)
-            return;
-
-        lastPauseTime = Time.time;
+        bool isPaused = client.State.Phase == GamePhase.Paused;
 
         NetworkBootstrap.Instance.Send(new PauseMessage
         {
@@ -58,15 +55,14 @@ public class HostPauseController : MonoBehaviour
 
     public void ApplyPauseState(bool paused)
     {
-        isPaused = paused;
-        UpdateText();
+        UpdateText(paused);
     }
 
-    private void UpdateText()
+    private void UpdateText(bool paused)
     {
         if (buttonText != null)
         {
-            buttonText.text = isPaused ? "Resume" : "Pause";
+            buttonText.text = paused ? "Resume" : "Pause";
         }
     }
 }

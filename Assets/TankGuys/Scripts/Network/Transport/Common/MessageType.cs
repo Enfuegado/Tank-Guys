@@ -11,5 +11,7 @@ public enum MessageType
     TurretRotation,
     TankDirection,
     Pause,
-    GameEnd
+    GameEnd,
+    Kick,
+    Ban
 }

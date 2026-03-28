@@ -25,11 +25,5 @@ public class PauseMessageHandler : IMessageHandler
         {
             hostUI.ApplyPauseState(msg.isPaused);
         }
-
-        var input = GameObject.FindObjectOfType<PauseInputController>();
-        if (input != null)
-        {
-            input.ApplyPauseState(msg.isPaused);
-        }
     }
 }

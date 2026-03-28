@@ -65,6 +65,17 @@ public class GameManager : MonoBehaviour
 
     public void TryStartGame()
     {
-        net?.Send(new StartGameMessage());
+        if (net == null || net.State == null)
+            return;
+
+        int playerCount = net.State.Players.Count;
+
+        if (playerCount < 2)
+        {
+            Debug.Log("No hay suficientes jugadores para iniciar");
+            return;
+        }
+
+        net.Send(new StartGameMessage());
     }
 }

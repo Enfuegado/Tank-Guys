@@ -4,7 +4,6 @@ public class PauseInputController : MonoBehaviour
 {
     private bool initialized = false;
     private bool isHost = false;
-    private bool isPaused = false;
 
     private GameClient client;
 
@@ -34,15 +33,17 @@ public class PauseInputController : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.P))
         {
+            bool currentPaused = client.State.Phase == GamePhase.Paused;
+
             NetworkBootstrap.Instance.Send(new PauseMessage
             {
-                isPaused = !isPaused
+                isPaused = !currentPaused
             });
         }
     }
 
     public void ApplyPauseState(bool paused)
     {
-        isPaused = paused;
+        // ya no se usa estado local
     }
 }

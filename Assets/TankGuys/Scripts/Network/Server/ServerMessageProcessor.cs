@@ -12,6 +12,8 @@ public class ServerMessageProcessor
 
     private int hostPlayerId = -1;
 
+    private HashSet<string> bannedIPs = new HashSet<string>();
+
     public event Action<TcpClient, int> OnClientConnected;
     public event Action<TcpClient, int> OnClientDisconnected;
     public event Action<int> OnStartGameRequested;
@@ -35,8 +37,9 @@ public class ServerMessageProcessor
             { MessageType.Damage, HandleDamage },
             { MessageType.TurretRotation, HandleTurretRotation },
             { MessageType.TankDirection, HandleTankDirection },
-            { MessageType.Pause, HandlePause }
-            
+            { MessageType.Pause, HandlePause },
+            { MessageType.Kick, HandleKick },
+            { MessageType.Ban, HandleBan }
         };
     }
 
@@ -61,6 +64,14 @@ public class ServerMessageProcessor
 
     private void HandleHello(string json, TcpClient sender)
     {
+        string ip = ((System.Net.IPEndPoint)sender.Client.RemoteEndPoint).Address.ToString();
+
+        if (bannedIPs.Contains(ip))
+        {
+            sender.Close();
+            return;
+        }
+
         int id = connectionManager.RegisterClient(sender);
 
         if (hostPlayerId == -1)
@@ -122,6 +133,63 @@ public class ServerMessageProcessor
         OnPauseReceived?.Invoke(sender, msg);
     }
 
+    private void HandleKick(string json, TcpClient sender)
+    {
+        var msg = JsonUtility.FromJson<KickPlayerMessage>(json);
+
+        if (!connectionManager.TryGetId(sender, out int senderId))
+            return;
+
+        if (senderId != hostPlayerId)
+            return;
+
+        if (msg.targetId == hostPlayerId)
+            return;
+
+        KickClient(msg.targetId);
+    }
+
+    private void HandleBan(string json, TcpClient sender)
+    {
+        var msg = JsonUtility.FromJson<BanPlayerMessage>(json);
+
+        if (!connectionManager.TryGetId(sender, out int senderId))
+            return;
+
+        if (senderId != hostPlayerId)
+            return;
+
+        if (msg.targetId == hostPlayerId)
+            return;
+
+        BanClient(msg.targetId);
+    }
+
+    private void KickClient(int targetId)
+    {
+        var client = connectionManager.GetClientById(targetId);
+        if (client == null) return;
+
+        client.Close();
+        connectionManager.RemoveClient(client);
+
+        OnClientDisconnected?.Invoke(client, targetId);
+
+        BroadcastPlayerList();
+    }
+
+    private void BanClient(int targetId)
+    {
+        var client = connectionManager.GetClientById(targetId);
+        if (client == null) return;
+
+        string ip = ((System.Net.IPEndPoint)client.Client.RemoteEndPoint).Address.ToString();
+
+        bannedIPs.Add(ip);
+
+        KickClient(targetId);
+    }
+
     public void HandleDisconnect(TcpClient client)
     {
         if (!connectionManager.TryGetId(client, out int id)) return;
@@ -166,15 +234,12 @@ public class ServerMessageProcessor
     {
         List<int> ids = new List<int>();
 
-        var field = connectionManager.GetType()
-            .GetField("clientIds", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-
-        var dict = field.GetValue(connectionManager) as Dictionary<System.Net.Sockets.TcpClient, int>;
-
-        foreach (var kvp in dict)
+        foreach (var kvp in connectionManager.GetAll())
         {
             ids.Add(kvp.Value);
         }
+
+        ids.Sort();
 
         PlayerListMessage msg = new PlayerListMessage
         {
@@ -198,6 +263,8 @@ public class ServerMessageProcessor
         if (msg is TankDirectionMessage) return MessageType.TankDirection;
         if (msg is PauseMessage) return MessageType.Pause;
         if (msg is GameEndMessage) return MessageType.GameEnd;
+        if (msg is KickPlayerMessage) return MessageType.Kick;
+        if (msg is BanPlayerMessage) return MessageType.Ban;
 
         throw new Exception("Tipo no registrado: " + msg.GetType());
     }

@@ -49,12 +49,14 @@ public class NetworkServer : INetworkServer
 
         try
         {
-            while (isRunning && client.Connected)
+            while (isRunning)
             {
                 int bytes = await stream.ReadAsync(buffer, 0, buffer.Length);
 
-                if (bytes <= 0)
+                if (bytes == 0)
+                {
                     break;
+                }
 
                 data.Append(Encoding.UTF8.GetString(buffer, 0, bytes));
 
@@ -99,7 +101,9 @@ public class NetworkServer : INetworkServer
     {
         byte[] data = Encoding.UTF8.GetBytes(message + "\n");
 
-        foreach (var client in clients)
+        var clientsCopy = new List<TcpClient>(clients);
+
+        foreach (var client in clientsCopy)
         {
             try
             {

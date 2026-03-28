@@ -69,6 +69,8 @@ public class TcpTransport : ITransport
         if (msg is TankDirectionMessage) return MessageType.TankDirection;
         if (msg is PauseMessage) return MessageType.Pause;
         if (msg is GameEndMessage) return MessageType.GameEnd;
+        if (msg is KickPlayerMessage) return MessageType.Kick;
+        if (msg is BanPlayerMessage) return MessageType.Ban;   
         
 
         throw new Exception("Tipo no registrado: " + msg.GetType());

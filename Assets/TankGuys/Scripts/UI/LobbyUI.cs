@@ -1,14 +1,25 @@
 using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
-using System.Text;
+using System.Collections.Generic;
 using System.Linq;
 
-public class LobbyUI : MonoBehaviour 
-{ 
-    public TextMeshProUGUI playersText; 
+public class LobbyUI : MonoBehaviour
+{
+    public static LobbyUI Instance;
+
+    public Transform playerContainer;
+    public GameObject playerRowPrefab;
+
     public TextMeshProUGUI statusText;
     public Button startGameButton;
+
+    private Dictionary<int, PlayerRowUI> rows = new();
+
+    void Awake()
+    {
+        Instance = this;
+    }
 
     void Start()
     {
@@ -19,6 +30,7 @@ public class LobbyUI : MonoBehaviour
     void Update()
     {
         UpdatePlayersUI();
+        DetectOutsideClick();
     }
 
     private void OnStartGameClicked()
@@ -29,17 +41,59 @@ public class LobbyUI : MonoBehaviour
     void UpdatePlayersUI()
     {
         var state = NetworkBootstrap.Instance.State;
-
         if (state == null) return;
 
-        StringBuilder sb = new StringBuilder();
+        var orderedIds = state.Players.Keys.OrderBy(id => id).ToList();
 
-        foreach (var kvp in state.Players.OrderBy(p => p.Key))
+        foreach (var id in orderedIds)
         {
-            sb.AppendLine("Jugador " + kvp.Key);
+            if (!rows.ContainsKey(id))
+            {
+                var obj = Instantiate(playerRowPrefab, playerContainer);
+                var row = obj.GetComponent<PlayerRowUI>();
+                row.Setup(id);
+
+                rows[id] = row;
+            }
         }
 
-        playersText.text = sb.ToString();
-        statusText.text = "Esperando jugadores...";
+        var toRemove = rows.Keys.Where(id => !orderedIds.Contains(id)).ToList();
+
+        foreach (var id in toRemove)
+        {
+            Destroy(rows[id].gameObject);
+            rows.Remove(id);
+        }
+
+        for (int i = 0; i < orderedIds.Count; i++)
+        {
+            var id = orderedIds[i];
+            rows[id].transform.SetSiblingIndex(i);
+        }
+
+        startGameButton.interactable = state.Players.Count >= 2;
+
+        statusText.text = state.Players.Count < 2
+            ? "Esperando más jugadores..."
+            : "Listo para iniciar";
+    }
+
+    void DetectOutsideClick()
+    {
+        if (Input.GetMouseButtonDown(0))
+        {
+            if (!UnityEngine.EventSystems.EventSystem.current.IsPointerOverGameObject())
+            {
+                CloseAll();
+            }
+        }
+    }
+
+    public void CloseAll()
+    {
+        foreach (var row in rows.Values)
+        {
+            row.Close();
+        }
     }
 }

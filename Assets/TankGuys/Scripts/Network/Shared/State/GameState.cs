@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using System.Linq;
 
 public class GameState
 {
@@ -37,25 +38,21 @@ public class GameState
 
     public void SetPlayers(IEnumerable<int> ids)
     {
-        var newSet = new HashSet<int>(ids);
+        var incoming = new HashSet<int>(ids);
 
-        foreach (var id in newSet)
-        {
-            if (!Players.ContainsKey(id))
-                AddPlayer(id);
-        }
-
-        var toRemove = new List<int>();
-
-        foreach (var id in Players.Keys)
-        {
-            if (!newSet.Contains(id))
-                toRemove.Add(id);
-        }
+        var toRemove = Players.Keys.Where(id => !incoming.Contains(id)).ToList();
 
         foreach (var id in toRemove)
         {
-            RemovePlayer(id);
+            Players.Remove(id);
+        }
+
+        foreach (var id in incoming)
+        {
+            if (!Players.ContainsKey(id))
+            {
+                Players[id] = new PlayerData(id);
+            }
         }
     }
 }

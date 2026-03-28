@@ -15,8 +15,13 @@ public class GameServer
     public GameServer()
     {
         connectionManager = new ConnectionManager();
+
+        var networkServer = new NetworkServer();
+
         router = new ServerMessageProcessor(connectionManager);
-        TcpServerRuntime = new TcpServerRuntime(router, new NetworkServer());
+        router.Initialize(networkServer);
+
+        TcpServerRuntime = new TcpServerRuntime(router, networkServer);
 
         state = new GameState();
         logic = new GameLogic(state);
@@ -31,7 +36,12 @@ public class GameServer
         router.OnStartGameRequested += (playerId) =>
         {
             int hostId = router.GetHostId();
-            if (playerId != hostId) return;
+
+            if (playerId != hostId)
+                return;
+
+            if (state.Players.Count < 2)
+                return;
 
             router.Broadcast(new StartGameMessage());
         };
@@ -104,6 +114,8 @@ public class GameServer
 
             if (state.Phase == GamePhase.Ended)
                 return;
+
+            state.Phase = msg.isPaused ? GamePhase.Paused : GamePhase.Playing;
 
             router.Broadcast(msg);
         };
