@@ -44,6 +44,8 @@ public class GameClient
         dispatcher.Register<PauseMessage>(new PauseMessageHandler());
         dispatcher.Register<GameEndMessage>(new GameEndMessageHandler());
         dispatcher.Register<ConnectionRejectedMessage>(new ConnectionRejectedHandler());
+        dispatcher.Register<PongMessage>(new PongMessageHandler());
+        dispatcher.Register<PingReportMessage>(new PingReportMessageHandler());
     }
 
     public void Start()

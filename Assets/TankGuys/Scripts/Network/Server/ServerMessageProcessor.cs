@@ -41,7 +41,10 @@ public class ServerMessageProcessor
             { MessageType.TankDirection, HandleTankDirection },
             { MessageType.Pause, HandlePause },
             { MessageType.Kick, HandleKick },
-            { MessageType.Ban, HandleBan }
+            { MessageType.Ban, HandleBan },
+            { MessageType.Ping, HandlePing },
+            { MessageType.Pong, HandlePong },
+            { MessageType.PingReport, HandlePingReport }
         };
     }
 
@@ -62,6 +65,32 @@ public class ServerMessageProcessor
         {
             Debug.LogError("Tipo no registrado: " + wrapper.type);
         }
+    }
+
+    private void HandlePing(string json, TcpClient sender)
+    {
+        var msg = JsonUtility.FromJson<PingMessage>(json);
+
+        if (!connectionManager.TryGetId(sender, out int id))
+            return;
+
+        PongMessage pong = new PongMessage
+        {
+            playerId = id,
+            timestamp = msg.timestamp
+        };
+
+        SendToClient(sender, pong);
+    }
+
+    private void HandlePong(string json, TcpClient sender)
+    {
+    }
+    private void HandlePingReport(string json, TcpClient sender)
+    {
+        var msg = JsonUtility.FromJson<PingReportMessage>(json);
+
+        Broadcast(msg);
     }
 
     private void HandleHello(string json, TcpClient sender)
@@ -292,6 +321,9 @@ public class ServerMessageProcessor
         if (msg is KickPlayerMessage) return MessageType.Kick;
         if (msg is BanPlayerMessage) return MessageType.Ban;
         if (msg is ConnectionRejectedMessage) return MessageType.ConnectionRejected;
+        if (msg is PingMessage) return MessageType.Ping;
+        if (msg is PongMessage) return MessageType.Pong;
+        if (msg is PingReportMessage) return MessageType.PingReport;
 
         throw new Exception("Tipo no registrado: " + msg.GetType());
     }

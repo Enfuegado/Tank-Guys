@@ -25,6 +25,9 @@ public class TcpTransport : ITransport
         router.Register<PauseMessage>(MessageType.Pause, msg => OnMessage?.Invoke(msg));
         router.Register<GameEndMessage>(MessageType.GameEnd, msg => OnMessage?.Invoke(msg));
         router.Register<ConnectionRejectedMessage>(MessageType.ConnectionRejected, msg => OnMessage?.Invoke(msg));
+        router.Register<PingMessage>(MessageType.Ping, msg => OnMessage?.Invoke(msg));
+        router.Register<PongMessage>(MessageType.Pong, msg => OnMessage?.Invoke(msg));
+        router.Register<PingReportMessage>(MessageType.PingReport, msg => OnMessage?.Invoke(msg));
 
         TcpClientRuntime = new TcpClientRuntime(router, new NetworkClient());
 
@@ -73,6 +76,9 @@ public class TcpTransport : ITransport
         if (msg is KickPlayerMessage) return MessageType.Kick;
         if (msg is BanPlayerMessage) return MessageType.Ban;
         if (msg is ConnectionRejectedMessage) return MessageType.ConnectionRejected;
+        if (msg is PingMessage) return MessageType.Ping;
+        if (msg is PongMessage) return MessageType.Pong;
+        if (msg is PingReportMessage) return MessageType.PingReport;
 
         throw new Exception("Tipo no registrado: " + msg.GetType());
     }

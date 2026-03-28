@@ -14,5 +14,8 @@ public enum MessageType
     GameEnd,
     Kick,
     Ban,
-    ConnectionRejected
+    ConnectionRejected,
+    Ping,
+    Pong,
+    PingReport
 }
