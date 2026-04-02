@@ -1,7 +1,7 @@
 using System;
 
 [Serializable]
-public class BanPlayerMessage : NetMessage
+public class BanRequestMessage : NetMessage
 {
     public int targetId;
 }

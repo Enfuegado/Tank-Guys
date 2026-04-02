@@ -56,12 +56,12 @@ public class PlayerRowUI : MonoBehaviour
 
     void Kick()
     {
-        NetworkBootstrap.Instance.Send(new KickPlayerMessage { targetId = playerId });
+        NetworkBootstrap.Instance.Send(new KickRequestMessage { targetId = playerId });
     }
 
     void Ban()
     {
-        NetworkBootstrap.Instance.Send(new BanPlayerMessage { targetId = playerId });
+        NetworkBootstrap.Instance.Send(new BanRequestMessage { targetId = playerId });
     }
 
     public void Close()

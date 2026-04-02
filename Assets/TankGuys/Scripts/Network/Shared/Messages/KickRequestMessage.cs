@@ -1,7 +1,7 @@
 using System;
 
 [Serializable]
-public class KickPlayerMessage : NetMessage
+public class KickRequestMessage : NetMessage
 {
     public int targetId;
 }

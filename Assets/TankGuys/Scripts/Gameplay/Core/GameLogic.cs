@@ -35,7 +35,15 @@ public class GameLogic
         float speed = 5f;
 
         Vector2 input = new Vector2(x, y);
-        Vector2 newPos = player.Position + input * speed * UnityEngine.Time.deltaTime;
+
+        float magnitude = Mathf.Clamp(input.magnitude, 0f, 1f);
+
+        if (magnitude > 0f)
+            input = input.normalized * magnitude;
+
+        float dt = 0.0333f;
+
+        Vector2 newPos = player.Position + input * speed * dt;
 
         float arenaRadius = 8f;
 
@@ -49,7 +57,6 @@ public class GameLogic
 
     public void OnPlayerShoot(int id, float dirX, float dirY)
     {
-        Debug.Log("CLIENT RECIBE DISPARO de: " + id);
         if (!state.Players.TryGetValue(id, out var player))
             return;
 

@@ -5,6 +5,9 @@ public class PlayerController : MonoBehaviour
     private Transform turret;
     private PlayerTag tag;
 
+    private float rotationSpeed = 10f;
+    private float turretRotationSpeed = 15f;
+
     void Start()
     {
         tag = GetComponent<PlayerTag>();
@@ -63,22 +66,37 @@ public class PlayerController : MonoBehaviour
             });
         }
 
-        ApplyRotation(player);
+        SmoothTankRotation(player);
         HandleTurret(player);
     }
 
     private void ApplyRemote(PlayerData player)
     {
-        ApplyRotation(player);
+        SmoothTankRotation(player);
 
         if (turret != null)
-            turret.rotation = Quaternion.Euler(0, 0, player.TurretRotation);
+        {
+            Quaternion target = Quaternion.Euler(0, 0, player.TurretRotation);
+
+            turret.rotation = Quaternion.Lerp(
+                turret.rotation,
+                target,
+                turretRotationSpeed * Time.deltaTime
+            );
+        }
     }
 
-    private void ApplyRotation(PlayerData player)
+    private void SmoothTankRotation(PlayerData player)
     {
         float angle = player.TankDirection * 45f;
-        transform.rotation = Quaternion.Euler(0, 0, angle);
+
+        Quaternion target = Quaternion.Euler(0, 0, angle);
+
+        transform.rotation = Quaternion.Lerp(
+            transform.rotation,
+            target,
+            rotationSpeed * Time.deltaTime
+        );
     }
 
     private void HandleTurret(PlayerData player)
@@ -90,7 +108,13 @@ public class PlayerController : MonoBehaviour
 
         float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
 
-        turret.rotation = Quaternion.Euler(0, 0, angle);
+        Quaternion target = Quaternion.Euler(0, 0, angle);
+
+        turret.rotation = Quaternion.Lerp(
+            turret.rotation,
+            target,
+            turretRotationSpeed * Time.deltaTime
+        );
 
         player.TurretRotation = angle;
 

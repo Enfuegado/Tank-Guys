@@ -43,7 +43,9 @@ public class ServerMessageProcessor
             { MessageType.TankDirection, HandleTankDirection },
             { MessageType.Pause, HandlePause },
             { MessageType.Kick, HandleKick },
-            { MessageType.Ban, HandleBan }
+            { MessageType.Ban, HandleBan },
+            { MessageType.Ping, HandlePing },
+            { MessageType.PingReport, HandlePingReport }
         };
     }
 
@@ -101,7 +103,7 @@ public class ServerMessageProcessor
 
     private void HandleKick(string json, TcpClient sender)
     {
-        var msg = JsonUtility.FromJson<KickPlayerMessage>(json);
+        var msg = JsonUtility.FromJson<KickRequestMessage>(json);
 
         if (!connectionManager.TryGetId(sender, out int senderId))
             return;
@@ -117,7 +119,7 @@ public class ServerMessageProcessor
 
     private void HandleBan(string json, TcpClient sender)
     {
-        var msg = JsonUtility.FromJson<BanPlayerMessage>(json);
+        var msg = JsonUtility.FromJson<BanRequestMessage>(json);
 
         if (!connectionManager.TryGetId(sender, out int senderId))
             return;
@@ -256,7 +258,25 @@ public class ServerMessageProcessor
 
         _ = server.Send(client, json);
     }
+    private void HandlePing(string json, TcpClient sender)
+    {
+        var msg = JsonUtility.FromJson<PingMessage>(json);
 
+        if (!connectionManager.TryGetId(sender, out int id))
+            return;
+
+        SendToClient(sender, new PongMessage
+        {
+            playerId = id,
+            timestamp = msg.timestamp
+        });
+    }
+
+    private void HandlePingReport(string json, TcpClient sender)
+    {
+        var msg = JsonUtility.FromJson<PingReportMessage>(json);
+        Broadcast(msg);
+    }
     public void Broadcast(NetMessage msg)
     {
         MessageWrapper wrapper = new MessageWrapper
@@ -303,11 +323,15 @@ public class ServerMessageProcessor
         if (msg is TankDirectionMessage) return MessageType.TankDirection;
         if (msg is PauseMessage) return MessageType.Pause;
         if (msg is GameEndMessage) return MessageType.GameEnd;
-        if (msg is KickPlayerMessage) return MessageType.Kick;
-        if (msg is BanPlayerMessage) return MessageType.Ban;
+        if (msg is KickRequestMessage) return MessageType.Kick;
+        if (msg is BanRequestMessage) return MessageType.Ban;
         if (msg is ConnectionRejectedMessage) return MessageType.ConnectionRejected;
         if (msg is KickedMessage) return MessageType.Kicked;
         if (msg is BannedMessage) return MessageType.Banned;
+        if (msg is PingMessage) return MessageType.Ping;
+        if (msg is PongMessage) return MessageType.Pong;
+        if (msg is PingReportMessage) return MessageType.PingReport;
+        
 
         throw new Exception("Tipo no registrado: " + msg.GetType());
     }

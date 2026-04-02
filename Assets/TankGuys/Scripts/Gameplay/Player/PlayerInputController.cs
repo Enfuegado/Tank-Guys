@@ -6,6 +6,9 @@ public class PlayerInputController : MonoBehaviour
     private int playerId;
     private bool initialized = false;
 
+    private float sendTimer = 0f;
+    private float sendInterval = 1f / 30f;
+
     void Update()
     {
         if (!initialized)
@@ -30,21 +33,24 @@ public class PlayerInputController : MonoBehaviour
         if (player.Status != PlayerStatus.Alive)
             return;
 
-        HandleMovement();
-        HandleShooting(player);
-    }
+        sendTimer += Time.deltaTime;
 
-    private void HandleMovement()
-    {
         float x = Input.GetAxis("Horizontal");
         float y = Input.GetAxis("Vertical");
 
-        client.Send(new MoveMessage
+        while (sendTimer >= sendInterval)
         {
-            playerId = playerId,
-            x = x,
-            y = y
-        });
+            sendTimer -= sendInterval;
+
+            client.Send(new MoveMessage
+            {
+                playerId = playerId,
+                x = x,
+                y = y
+            });
+        }
+
+        HandleShooting(player);
     }
 
     private void HandleShooting(PlayerData player)

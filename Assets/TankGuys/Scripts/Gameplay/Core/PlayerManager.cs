@@ -8,6 +8,7 @@ public class PlayerManager : MonoBehaviour
     public GameObject playerPrefab;
 
     private Dictionary<int, GameObject> playerObjects = new();
+    private Dictionary<int, Vector3> targetPositions = new();
 
     private GameState state;
     private SpawnManager spawnManager;
@@ -87,7 +88,7 @@ public class PlayerManager : MonoBehaviour
         }
 
         playerObjects[id] = obj;
-        Debug.Log("SPAWN PLAYER: " + id);
+        targetPositions[id] = obj.transform.position;
     }
 
     private void UpdatePlayer(PlayerData data)
@@ -99,11 +100,22 @@ public class PlayerManager : MonoBehaviour
         {
             Destroy(obj);
             playerObjects.Remove(data.Id);
+            targetPositions.Remove(data.Id);
             return;
         }
 
-        obj.transform.position = new Vector3(data.Position.x, data.Position.y, 0);
-        Debug.Log("UPDATE PLAYER: " + data.Id + " STATUS: " + data.Status);
+        Vector3 targetPos = new Vector3(data.Position.x, data.Position.y, 0);
+        targetPositions[data.Id] = targetPos;
+
+        Vector3 currentPos = obj.transform.position;
+
+        float lerpSpeed = 10f;
+
+        obj.transform.position = Vector3.Lerp(
+            currentPos,
+            targetPositions[data.Id],
+            lerpSpeed * Time.deltaTime
+        );
     }
 
     private void RemovePlayer(int id)
@@ -112,6 +124,7 @@ public class PlayerManager : MonoBehaviour
         {
             Destroy(obj);
             playerObjects.Remove(id);
+            targetPositions.Remove(id);
         }
     }
 }

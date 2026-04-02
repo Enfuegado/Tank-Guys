@@ -75,8 +75,8 @@ public class TcpTransport : ITransport
         if (msg is TankDirectionMessage) return MessageType.TankDirection;
         if (msg is PauseMessage) return MessageType.Pause;
         if (msg is GameEndMessage) return MessageType.GameEnd;
-        if (msg is KickPlayerMessage) return MessageType.Kick;
-        if (msg is BanPlayerMessage) return MessageType.Ban;
+        if (msg is KickRequestMessage) return MessageType.Kick;
+        if (msg is BanRequestMessage) return MessageType.Ban;
         if (msg is ConnectionRejectedMessage) return MessageType.ConnectionRejected;
         if (msg is PingMessage) return MessageType.Ping;
         if (msg is PongMessage) return MessageType.Pong;
