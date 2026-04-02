@@ -331,7 +331,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Padding:
-    m_Left: -10
+    m_Left: -6
     m_Right: 0
     m_Top: 0
     m_Bottom: 0
@@ -410,7 +410,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: -633044342745444703, guid: cb6988a6a8dd0044aab742f19097346b, type: 3}
+  m_Sprite: {fileID: -6470460504253458178, guid: 81ce1a085a320d2489e416270ad9703e, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -449,8 +449,8 @@ MonoBehaviour:
     m_ColorMultiplier: 1
     m_FadeDuration: 0.1
   m_SpriteState:
-    m_HighlightedSprite: {fileID: -7509115814630601271, guid: aa9e4c35471cf004a8403fe703247e28, type: 3}
-    m_PressedSprite: {fileID: 440638957810843560, guid: fc67af4b6d9c6984888e2cac9cc07c1c, type: 3}
+    m_HighlightedSprite: {fileID: -4178046375966092550, guid: c6693406f63e6994eb77c007df0038f0, type: 3}
+    m_PressedSprite: {fileID: 4130640169021434097, guid: 904342182911cd8458ef37175f859f38, type: 3}
     m_SelectedSprite: {fileID: 0}
     m_DisabledSprite: {fileID: 0}
   m_AnimationTriggers:
@@ -676,7 +676,7 @@ MonoBehaviour:
     m_Top: 0
     m_Bottom: 0
   m_ChildAlignment: 4
-  m_Spacing: 8
+  m_Spacing: 20
   m_ChildForceExpandWidth: 0
   m_ChildForceExpandHeight: 0
   m_ChildControlWidth: 0

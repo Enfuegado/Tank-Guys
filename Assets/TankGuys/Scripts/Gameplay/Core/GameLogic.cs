@@ -37,7 +37,7 @@ public class GameLogic
         Vector2 input = new Vector2(x, y);
         Vector2 newPos = player.Position + input * speed * UnityEngine.Time.deltaTime;
 
-        float arenaRadius = 8f;
+        float arenaRadius = 6f;
 
         if (newPos.magnitude > arenaRadius)
         {
