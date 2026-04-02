@@ -13,13 +13,10 @@ public class TcpClientRuntime
     private bool isDisconnecting = false;
     private bool receivedRejection = false;
 
-    private string sessionId;
-
     public TcpClientRuntime(MessageRouter router, INetworkClient client)
     {
         this.router = router;
         this.client = client;
-        sessionId = Guid.NewGuid().ToString();
     }
 
     public async Task Connect(string ip, int port)
@@ -36,10 +33,7 @@ public class TcpClientRuntime
 
             OnDebug?.Invoke("CLIENTE CONECTADO");
 
-            HelloMessage hello = new HelloMessage
-            {
-                sessionId = sessionId
-            };
+            HelloMessage hello = new HelloMessage();
 
             MessageWrapper wrapper = new MessageWrapper
             {

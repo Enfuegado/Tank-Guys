@@ -12,6 +12,7 @@ public class ServerMessageProcessor
     private Dictionary<MessageType, Action<string, TcpClient>> handlers;
 
     private int hostPlayerId = -1;
+    
 
     private HashSet<string> bannedIPs = new HashSet<string>();
     private HashSet<string> knownIPs = new HashSet<string>();
