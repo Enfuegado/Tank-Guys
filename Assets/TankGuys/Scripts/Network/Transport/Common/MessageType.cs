@@ -17,5 +17,7 @@ public enum MessageType
     ConnectionRejected,
     Ping,
     Pong,
-    PingReport
+    PingReport,
+    Kicked,
+    Banned
 }

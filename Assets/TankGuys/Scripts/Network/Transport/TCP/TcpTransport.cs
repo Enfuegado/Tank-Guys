@@ -28,6 +28,8 @@ public class TcpTransport : ITransport
         router.Register<PingMessage>(MessageType.Ping, msg => OnMessage?.Invoke(msg));
         router.Register<PongMessage>(MessageType.Pong, msg => OnMessage?.Invoke(msg));
         router.Register<PingReportMessage>(MessageType.PingReport, msg => OnMessage?.Invoke(msg));
+        router.Register<KickedMessage>(MessageType.Kicked, msg => OnMessage?.Invoke(msg));
+        router.Register<BannedMessage>(MessageType.Banned, msg => OnMessage?.Invoke(msg));
 
         TcpClientRuntime = new TcpClientRuntime(router, new NetworkClient());
 

@@ -22,6 +22,8 @@ public class ErrorPanelUI : MonoBehaviour
 
     public void Show(string message)
     {
+        if (this == null || gameObject == null) return;
+
         panel.SetActive(true);
         errorText.text = message;
         Time.timeScale = 0f;
