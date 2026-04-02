@@ -78,6 +78,9 @@ public class GameLogic
 
     private void CheckWinner()
     {
+        if (state.Phase != GamePhase.Playing)
+            return;
+
         var alive = state.Players.Values
             .Where(p => p.Status == PlayerStatus.Alive)
             .ToList();

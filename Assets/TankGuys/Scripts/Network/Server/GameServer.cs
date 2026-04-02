@@ -56,6 +56,16 @@ public class GameServer
         router.OnClientDisconnected += (client, id) =>
         {
             logic.OnPlayerDisconnected(id);
+
+            if (!gameEndedSent && state.Phase == GamePhase.Ended && state.WinnerId.HasValue)
+            {
+                gameEndedSent = true;
+
+                router.Broadcast(new GameEndMessage
+                {
+                    winnerId = state.WinnerId.Value
+                });
+            }
         };
 
         router.OnMoveReceived += (client, msg) =>
