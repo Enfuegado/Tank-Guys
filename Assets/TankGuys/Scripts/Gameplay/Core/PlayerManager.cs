@@ -8,7 +8,7 @@ public class PlayerManager : MonoBehaviour
     public GameObject[] playerPrefabs;
 
     private Dictionary<int, GameObject> playerObjects = new();
-    private Dictionary<int, Vector3> targetPositions = new();
+    private Dictionary<int, Queue<Vector3>> positionBuffers = new();
     private Dictionary<int, Animator> playerAnimators = new();
 
     private GameState state;
@@ -91,7 +91,8 @@ public class PlayerManager : MonoBehaviour
         }
 
         playerObjects[id] = obj;
-        targetPositions[id] = obj.transform.position;
+
+        positionBuffers[id] = new Queue<Vector3>();
 
         var anim = obj.GetComponentInChildren<Animator>();
         if (anim != null)
@@ -119,23 +120,36 @@ public class PlayerManager : MonoBehaviour
         {
             Destroy(obj);
             playerObjects.Remove(data.Id);
-            targetPositions.Remove(data.Id);
+            positionBuffers.Remove(data.Id);
             playerAnimators.Remove(data.Id);
             return;
         }
 
         Vector3 targetPos = new Vector3(data.Position.x, data.Position.y, 0);
-        targetPositions[data.Id] = targetPos;
+
+        if (!positionBuffers.ContainsKey(data.Id))
+        {
+            positionBuffers[data.Id] = new Queue<Vector3>();
+        }
+
+        var buffer = positionBuffers[data.Id];
+        buffer.Enqueue(targetPos);
+
+        if (buffer.Count > 5)
+        {
+            buffer.Dequeue();
+        }
 
         Vector3 currentPos = obj.transform.position;
+        Vector3 newPos = currentPos;
 
-        float lerpSpeed = 10f;
-
-        Vector3 newPos = Vector3.Lerp(
-            currentPos,
-            targetPositions[data.Id],
-            lerpSpeed * Time.deltaTime
-        );
+        if (buffer.Count >= 2)
+        {
+            var positions = buffer.ToArray();
+            Vector3 to = positions[1];
+            float t = 10f * Time.deltaTime;
+            newPos = Vector3.Lerp(currentPos, to, t);
+        }
 
         bool isMoving = (targetPos - currentPos).sqrMagnitude > 0.0001f;
 
@@ -153,7 +167,7 @@ public class PlayerManager : MonoBehaviour
         {
             Destroy(obj);
             playerObjects.Remove(id);
-            targetPositions.Remove(id);
+            positionBuffers.Remove(id);
             playerAnimators.Remove(id);
         }
     }
