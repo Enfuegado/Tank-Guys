@@ -5,7 +5,7 @@ public class PlayerManager : MonoBehaviour
 {
     public static PlayerManager Instance;
 
-    public GameObject playerPrefab;
+    public GameObject[] playerPrefabs;
 
     private Dictionary<int, GameObject> playerObjects = new();
     private Dictionary<int, Vector3> targetPositions = new();
@@ -73,7 +73,9 @@ public class PlayerManager : MonoBehaviour
             ? spawnManager.GetSpawnPosition(id)
             : Vector2.zero;
 
-        GameObject obj = Instantiate(playerPrefab, spawnPos, Quaternion.identity);
+        GameObject prefab = GetPrefabForPlayer(id);
+
+        GameObject obj = Instantiate(prefab, spawnPos, Quaternion.identity);
         obj.name = $"Player_{id}";
 
         var tag = obj.GetComponent<PlayerTag>();
@@ -89,6 +91,16 @@ public class PlayerManager : MonoBehaviour
 
         playerObjects[id] = obj;
         targetPositions[id] = obj.transform.position;
+    }
+
+    private GameObject GetPrefabForPlayer(int id)
+    {
+        if (playerPrefabs == null || playerPrefabs.Length == 0)
+            return null;
+
+        int index = (id - 1) % playerPrefabs.Length;
+
+        return playerPrefabs[index];
     }
 
     private void UpdatePlayer(PlayerData data)

@@ -44,7 +44,21 @@ public class NetworkBootstrap : MonoBehaviour
     public void CreateRoom()
     {
         host = new HostNetwork();
-        host.StartHost();
+
+        bool success = host.StartHost();
+
+        if (!success)
+        {
+            host = null;
+
+            ErrorPanelUI.Instance.Show("La sala ya fue creada por otro jugador");
+
+            var menu = FindObjectOfType<MainMenuUI>();
+            if (menu != null)
+                menu.ResetUI();
+
+            return;
+        }
 
         InitializeGame();
     }

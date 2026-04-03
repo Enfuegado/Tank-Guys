@@ -10,6 +10,8 @@ public class ErrorPanelUI : MonoBehaviour
     [SerializeField] private TextMeshProUGUI errorText;
     [SerializeField] private Button okButton;
 
+    private MainMenuUI menu;
+
     void Awake()
     {
         Instance = this;
@@ -17,7 +19,12 @@ public class ErrorPanelUI : MonoBehaviour
         panel.SetActive(false);
 
         okButton.onClick.RemoveAllListeners();
-        okButton.onClick.AddListener(Hide);
+        okButton.onClick.AddListener(OnOkClicked);
+    }
+
+    void Start()
+    {
+        menu = FindObjectOfType<MainMenuUI>();
     }
 
     public void Show(string message)
@@ -29,9 +36,15 @@ public class ErrorPanelUI : MonoBehaviour
         Time.timeScale = 0f;
     }
 
-    private void Hide()
+    private void OnOkClicked()
     {
         panel.SetActive(false);
         Time.timeScale = 1f;
+
+        if (menu == null)
+            menu = FindObjectOfType<MainMenuUI>();
+
+        if (menu != null)
+            menu.ResetUI();
     }
 }

@@ -74,9 +74,7 @@ public class ServerMessageProcessor
             return;
         }
 
-        bool known = knownIPs.Contains(ip);
-
-        if (gameState.Phase != GamePhase.Lobby && !known)
+        if (gameState.Phase != GamePhase.Lobby)
         {
             SendReject(sender, "La partida ya ha comenzado");
             return;

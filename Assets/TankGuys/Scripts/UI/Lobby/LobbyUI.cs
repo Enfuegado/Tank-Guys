@@ -30,6 +30,7 @@ public class LobbyUI : MonoBehaviour
     void Update()
     {
         UpdatePlayersUI();
+        UpdateHostUI();
         DetectOutsideClick();
     }
 
@@ -71,11 +72,25 @@ public class LobbyUI : MonoBehaviour
             rows[id].transform.SetSiblingIndex(i);
         }
 
-        startGameButton.interactable = state.Players.Count >= 2;
+        bool enoughPlayers = state.Players.Count >= 2;
 
-        statusText.text = state.Players.Count < 2
+        startGameButton.interactable = enoughPlayers;
+
+        statusText.text = !enoughPlayers
             ? "Esperando más jugadores..."
             : "Listo para iniciar";
+    }
+
+    void UpdateHostUI()
+    {
+        if (NetworkBootstrap.Instance == null) return;
+
+        bool isHost = NetworkBootstrap.Instance.IsHost;
+
+        if (startGameButton.gameObject.activeSelf != isHost)
+        {
+            startGameButton.gameObject.SetActive(isHost);
+        }
     }
 
     void DetectOutsideClick()

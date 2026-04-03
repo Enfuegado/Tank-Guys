@@ -53,6 +53,7 @@ public class MainMenuUI : MonoBehaviour
 
         await NetworkBootstrap.Instance.JoinRoom();
     }
+
     public void ResetUI()
     {
         connecting = false;
