@@ -9,13 +9,13 @@ public class ServerMessageProcessor
     private ConnectionManager connectionManager;
     private GameState gameState;
 
+    private ServerAdminService adminService;
+    private ServerConnectionService connectionService;
+    private ServerMessageSender messageSender;
+
     private Dictionary<MessageType, Action<string, TcpClient>> handlers;
 
     private int hostPlayerId = -1;
-    
-
-    private HashSet<string> bannedIPs = new HashSet<string>();
-    private HashSet<string> knownIPs = new HashSet<string>();
 
     public event Action<TcpClient, int> OnClientConnected;
     public event Action<TcpClient, int> OnClientDisconnected;
@@ -31,6 +31,13 @@ public class ServerMessageProcessor
     {
         this.connectionManager = connectionManager;
         this.gameState = state;
+
+        adminService = new ServerAdminService(connectionManager);
+        adminService.OnClientDisconnected += (c, id) => OnClientDisconnected?.Invoke(c, id);
+        adminService.OnPlayerListChanged += BroadcastPlayerList;
+
+        connectionService = new ServerConnectionService(connectionManager, gameState);
+        connectionService.OnClientConnected += (c, id) => OnClientConnected?.Invoke(c, id);
 
         handlers = new Dictionary<MessageType, Action<string, TcpClient>>
         {
@@ -52,6 +59,7 @@ public class ServerMessageProcessor
     public void Initialize(INetworkServer server)
     {
         this.server = server;
+        messageSender = new ServerMessageSender(server);
     }
 
     public void Handle(string json, TcpClient sender)
@@ -66,132 +74,54 @@ public class ServerMessageProcessor
 
     private void HandleHello(string json, TcpClient sender)
     {
-        string ip = ((System.Net.IPEndPoint)sender.Client.RemoteEndPoint).Address.ToString();
-
-        if (bannedIPs.Contains(ip))
-        {
-            SendReject(sender, "You have been banned by the host");
-            return;
-        }
-
-        if (gameState.Phase != GamePhase.Lobby)
-        {
-            SendReject(sender, "The match has already started");
-            return;
-        }
-
-        int maxPlayers = 4;
-
-        if (connectionManager.GetAll().Count >= maxPlayers)
-        {
-            SendReject(sender, "The maximum number of players has been reached");
-            return;
-        }
-
-        int id = connectionManager.RegisterClient(sender);
-
-        if (hostPlayerId == -1)
-            hostPlayerId = id;
-
-        knownIPs.Add(ip);
-
-        AssignIdMessage assign = new AssignIdMessage
-        {
-            playerId = id
-        };
-
-        SendToClient(sender, assign);
-
-        OnClientConnected?.Invoke(sender, id);
-
-        BroadcastPlayerList();
+        connectionService.TryHandleConnection(
+            sender,
+            adminService.IsBanned,
+            messageSender.Send,
+            BroadcastPlayerList,
+            ref hostPlayerId
+        );
     }
 
     private void HandleKick(string json, TcpClient sender)
     {
         var msg = JsonUtility.FromJson<KickRequestMessage>(json);
 
-        if (!connectionManager.TryGetId(sender, out int senderId))
-            return;
+        if (!IsHost(sender)) return;
+        if (msg.targetId == hostPlayerId) return;
 
-        if (senderId != hostPlayerId)
-            return;
+        var client = connectionManager.GetClientById(msg.targetId);
+        if (client == null) return;
 
-        if (msg.targetId == hostPlayerId)
-            return;
+        messageSender.Send(client, new KickedMessage
+        {
+            reason = "You have been kicked by the host"
+        });
 
-        KickClient(msg.targetId);
+        adminService.KickClient(msg.targetId);
     }
 
     private void HandleBan(string json, TcpClient sender)
     {
         var msg = JsonUtility.FromJson<BanRequestMessage>(json);
 
-        if (!connectionManager.TryGetId(sender, out int senderId))
-            return;
-
-        if (senderId != hostPlayerId)
-            return;
-
-        if (msg.targetId == hostPlayerId)
-            return;
+        if (!IsHost(sender)) return;
+        if (msg.targetId == hostPlayerId) return;
 
         var client = connectionManager.GetClientById(msg.targetId);
         if (client == null) return;
 
-        string ip = ((System.Net.IPEndPoint)client.Client.RemoteEndPoint).Address.ToString();
-        bannedIPs.Add(ip);
-
-        SendToClient(client, new BannedMessage
+        messageSender.Send(client, new BannedMessage
         {
             reason = "You have been banned by the host"
         });
 
-        System.Threading.Tasks.Task.Delay(100).ContinueWith(_ =>
-        {
-            try { client.Close(); } catch {}
-        });
-
-        connectionManager.RemoveClient(client);
-
-        OnClientDisconnected?.Invoke(client, msg.targetId);
-
-        BroadcastPlayerList();
+        adminService.BanClient(msg.targetId);
     }
 
-    private void KickClient(int targetId)
+    private bool IsHost(TcpClient sender)
     {
-        var client = connectionManager.GetClientById(targetId);
-        if (client == null) return;
-
-        SendToClient(client, new KickedMessage
-        {
-            reason = "You have been kicked by the host"
-        });
-
-        System.Threading.Tasks.Task.Delay(100).ContinueWith(_ =>
-        {
-            try { client.Close(); } catch {}
-        });
-
-        connectionManager.RemoveClient(client);
-
-        OnClientDisconnected?.Invoke(client, targetId);
-
-        BroadcastPlayerList();
-    }
-
-    private void SendReject(TcpClient sender, string reason)
-    {
-        SendToClient(sender, new ConnectionRejectedMessage
-        {
-            reason = reason
-        });
-
-        System.Threading.Tasks.Task.Delay(100).ContinueWith(_ =>
-        {
-            try { sender.Close(); } catch {}
-        });
+        return connectionManager.TryGetId(sender, out int id) && id == hostPlayerId;
     }
 
     private void HandleStartGame(string json, TcpClient sender)
@@ -252,18 +182,6 @@ public class ServerMessageProcessor
         BroadcastPlayerList();
     }
 
-    private void SendToClient(TcpClient client, NetMessage msg)
-    {
-        MessageWrapper wrapper = new MessageWrapper
-        {
-            type = GetMessageType(msg),
-            json = JsonUtility.ToJson(msg)
-        };
-
-        string json = JsonUtility.ToJson(wrapper);
-
-        _ = server.Send(client, json);
-    }
     private void HandlePing(string json, TcpClient sender)
     {
         var msg = JsonUtility.FromJson<PingMessage>(json);
@@ -271,7 +189,7 @@ public class ServerMessageProcessor
         if (!connectionManager.TryGetId(sender, out int id))
             return;
 
-        SendToClient(sender, new PongMessage
+        messageSender.Send(sender, new PongMessage
         {
             playerId = id,
             timestamp = msg.timestamp
@@ -281,19 +199,7 @@ public class ServerMessageProcessor
     private void HandlePingReport(string json, TcpClient sender)
     {
         var msg = JsonUtility.FromJson<PingReportMessage>(json);
-        Broadcast(msg);
-    }
-    public void Broadcast(NetMessage msg)
-    {
-        MessageWrapper wrapper = new MessageWrapper
-        {
-            type = GetMessageType(msg),
-            json = JsonUtility.ToJson(msg)
-        };
-
-        string json = JsonUtility.ToJson(wrapper);
-
-        _ = server.Broadcast(json);
+        messageSender.Broadcast(msg);
     }
 
     private void BroadcastPlayerList()
@@ -312,38 +218,15 @@ public class ServerMessageProcessor
             playerIds = ids.ToArray()
         };
 
-        Broadcast(msg);
-    }
-
-    private MessageType GetMessageType(NetMessage msg)
-    {
-        if (msg is StartGameMessage) return MessageType.StartGame;
-        if (msg is PlayerListMessage) return MessageType.PlayerList;
-        if (msg is AssignIdMessage) return MessageType.AssignId;
-        if (msg is HelloMessage) return MessageType.Hello;
-        if (msg is MoveMessage) return MessageType.Move;
-        if (msg is ShootMessage) return MessageType.Shoot;
-        if (msg is DamageMessage) return MessageType.Damage;
-        if (msg is PlayerStateMessage) return MessageType.PlayerState;
-        if (msg is TurretRotationMessage) return MessageType.TurretRotation;
-        if (msg is TankDirectionMessage) return MessageType.TankDirection;
-        if (msg is PauseMessage) return MessageType.Pause;
-        if (msg is GameEndMessage) return MessageType.GameEnd;
-        if (msg is KickRequestMessage) return MessageType.Kick;
-        if (msg is BanRequestMessage) return MessageType.Ban;
-        if (msg is ConnectionRejectedMessage) return MessageType.ConnectionRejected;
-        if (msg is KickedMessage) return MessageType.Kicked;
-        if (msg is BannedMessage) return MessageType.Banned;
-        if (msg is PingMessage) return MessageType.Ping;
-        if (msg is PongMessage) return MessageType.Pong;
-        if (msg is PingReportMessage) return MessageType.PingReport;
-        
-
-        throw new Exception("Tipo no registrado: " + msg.GetType());
+        messageSender.Broadcast(msg);
     }
 
     public int GetHostId()
     {
         return hostPlayerId;
+    }
+    public void Broadcast(NetMessage msg)
+    {
+        messageSender.Broadcast(msg);
     }
 }
