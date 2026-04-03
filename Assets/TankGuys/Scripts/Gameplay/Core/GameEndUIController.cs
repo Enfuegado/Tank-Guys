@@ -18,7 +18,7 @@ public class GameEndUIController : MonoBehaviour
             panel.SetActive(true);
 
         if (winnerText != null)
-            winnerText.text = "Player " + winnerId + " Wins!";
+            winnerText.text = "Player " + winnerId + " wins";
     }
 
     public void OnExitButton()

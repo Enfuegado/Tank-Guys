@@ -10,12 +10,6 @@ public class PauseUIController : MonoBehaviour
             pausePanel.SetActive(false);
     }
 
-    public void OnExitButton()
-    {
-        NetworkBootstrap.Instance.ResetNetwork();
-        UnityEngine.SceneManagement.SceneManager.LoadScene("MainMenu");
-    }
-
     public void ApplyPauseState(bool paused)
     {
         if (pausePanel != null)

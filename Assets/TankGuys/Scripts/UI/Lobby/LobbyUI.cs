@@ -77,8 +77,8 @@ public class LobbyUI : MonoBehaviour
         startGameButton.interactable = enoughPlayers;
 
         statusText.text = !enoughPlayers
-            ? "Esperando más jugadores..."
-            : "Listo para iniciar";
+            ? "Waiting for more players..."
+            : "Ready to start";
     }
 
     void UpdateHostUI()

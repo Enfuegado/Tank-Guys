@@ -15,7 +15,7 @@ public class PlayerRowInGameUI : MonoBehaviour
     {
         playerId = id;
 
-        nameText.text = "Jugador " + id;
+        nameText.text = "Player " + id;
 
         if (id == localId)
         {

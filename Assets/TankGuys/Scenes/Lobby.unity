@@ -956,27 +956,14 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1486596739}
-  - component: {fileID: 1486596738}
+  - component: {fileID: 1486596740}
   m_Layer: 0
-  m_Name: PauseUIController
+  m_Name: ExitButtonUI
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &1486596738
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1486596737}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f0083f01927f43c448adab6c43b0c002, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  pausePanel: {fileID: 0}
 --- !u!4 &1486596739
 Transform:
   m_ObjectHideFlags: 0
@@ -992,6 +979,18 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1486596740
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1486596737}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 38e7a8b96060957409801e4d5e43b3f2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ExitButtonUI
 --- !u!1 &1656396494
 GameObject:
   m_ObjectHideFlags: 0
@@ -1194,8 +1193,8 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1486596738}
-        m_TargetAssemblyTypeName: PauseUIController, Assembly-CSharp
+      - m_Target: {fileID: 1486596740}
+        m_TargetAssemblyTypeName: ExitButtonUI, Assembly-CSharp
         m_MethodName: OnExitButton
         m_Mode: 1
         m_Arguments:

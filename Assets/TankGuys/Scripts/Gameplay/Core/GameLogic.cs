@@ -85,7 +85,7 @@ public class GameLogic
 
     private void CheckWinner()
     {
-        if (state.Phase != GamePhase.Playing)
+        if (state.Phase == GamePhase.Ended)
             return;
 
         var alive = state.Players.Values

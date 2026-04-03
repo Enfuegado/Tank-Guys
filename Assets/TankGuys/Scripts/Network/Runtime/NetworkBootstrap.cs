@@ -51,7 +51,7 @@ public class NetworkBootstrap : MonoBehaviour
         {
             host = null;
 
-            ErrorPanelUI.Instance.Show("La sala ya fue creada por otro jugador");
+            ErrorPanelUI.Instance.Show("The room has already been created by another player");
 
             var menu = FindObjectOfType<MainMenuUI>();
             if (menu != null)

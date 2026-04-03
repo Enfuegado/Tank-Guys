@@ -70,13 +70,21 @@ public class ServerMessageProcessor
 
         if (bannedIPs.Contains(ip))
         {
-            SendReject(sender, "Has sido baneado del host");
+            SendReject(sender, "You have been banned by the host");
             return;
         }
 
         if (gameState.Phase != GamePhase.Lobby)
         {
-            SendReject(sender, "La partida ya ha comenzado");
+            SendReject(sender, "The match has already started");
+            return;
+        }
+
+        int maxPlayers = 4;
+
+        if (connectionManager.GetAll().Count >= maxPlayers)
+        {
+            SendReject(sender, "The maximum number of players has been reached");
             return;
         }
 
@@ -136,7 +144,7 @@ public class ServerMessageProcessor
 
         SendToClient(client, new BannedMessage
         {
-            reason = "Has sido baneado del host"
+            reason = "You have been banned by the host"
         });
 
         System.Threading.Tasks.Task.Delay(100).ContinueWith(_ =>
@@ -158,7 +166,7 @@ public class ServerMessageProcessor
 
         SendToClient(client, new KickedMessage
         {
-            reason = "Has sido expulsado por el host"
+            reason = "You have been kicked by the host"
         });
 
         System.Threading.Tasks.Task.Delay(100).ContinueWith(_ =>

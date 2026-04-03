@@ -48,7 +48,7 @@ public class MainMenuUI : MonoBehaviour
         if (connecting) return;
 
         connecting = true;
-        statusText.text = "Creando sala...";
+        statusText.text = "Creating lobby...";
 
         NetworkBootstrap.Instance.CreateRoom();
     }

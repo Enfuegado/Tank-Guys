@@ -9,6 +9,7 @@ public class PlayerManager : MonoBehaviour
 
     private Dictionary<int, GameObject> playerObjects = new();
     private Dictionary<int, Vector3> targetPositions = new();
+    private Dictionary<int, Animator> playerAnimators = new();
 
     private GameState state;
     private SpawnManager spawnManager;
@@ -91,6 +92,12 @@ public class PlayerManager : MonoBehaviour
 
         playerObjects[id] = obj;
         targetPositions[id] = obj.transform.position;
+
+        var anim = obj.GetComponentInChildren<Animator>();
+        if (anim != null)
+        {
+            playerAnimators[id] = anim;
+        }
     }
 
     private GameObject GetPrefabForPlayer(int id)
@@ -113,6 +120,7 @@ public class PlayerManager : MonoBehaviour
             Destroy(obj);
             playerObjects.Remove(data.Id);
             targetPositions.Remove(data.Id);
+            playerAnimators.Remove(data.Id);
             return;
         }
 
@@ -123,11 +131,20 @@ public class PlayerManager : MonoBehaviour
 
         float lerpSpeed = 10f;
 
-        obj.transform.position = Vector3.Lerp(
+        Vector3 newPos = Vector3.Lerp(
             currentPos,
             targetPositions[data.Id],
             lerpSpeed * Time.deltaTime
         );
+
+        bool isMoving = (targetPos - currentPos).sqrMagnitude > 0.0001f;
+
+        obj.transform.position = newPos;
+
+        if (playerAnimators.TryGetValue(data.Id, out var anim))
+        {
+            anim.SetBool("IsMoving", isMoving);
+        }
     }
 
     private void RemovePlayer(int id)
@@ -137,6 +154,7 @@ public class PlayerManager : MonoBehaviour
             Destroy(obj);
             playerObjects.Remove(id);
             targetPositions.Remove(id);
+            playerAnimators.Remove(id);
         }
     }
 }
