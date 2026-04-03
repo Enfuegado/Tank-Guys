@@ -9,21 +9,10 @@ public class BannedHandler : IMessageHandler
 
         UnityMainThreadDispatcher.Instance().Enqueue(() =>
         {
-            if (ErrorPanelUI.Instance != null)
-            {
-                ErrorPanelUI.Instance.Show(msg.reason);
-            }
+            GameManager.SetDisconnectReason(msg.reason);
 
-            System.Threading.Tasks.Task.Delay(200).ContinueWith(_ =>
-            {
-                UnityMainThreadDispatcher.Instance().Enqueue(() =>
-                {
-                    if (NetworkBootstrap.Instance != null)
-                    {
-                        NetworkBootstrap.Instance.ResetNetwork();
-                    }
-                });
-            });
+            NetworkBootstrap.Instance.ResetNetwork();
+            UnityEngine.SceneManagement.SceneManager.LoadScene("MainMenu");
         });
     }
 }

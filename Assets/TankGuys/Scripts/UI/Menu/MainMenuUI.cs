@@ -19,6 +19,15 @@ public class MainMenuUI : MonoBehaviour
 
         createButton.onClick.AddListener(OnCreateClicked);
         joinButton.onClick.AddListener(OnJoinClicked);
+
+        string reason = GameManager.ConsumeDisconnectReason();
+        if (!string.IsNullOrEmpty(reason))
+        {
+            if (ErrorPanelUI.Instance != null)
+            {
+                ErrorPanelUI.Instance.Show(reason);
+            }
+        }
     }
 
     void Update()

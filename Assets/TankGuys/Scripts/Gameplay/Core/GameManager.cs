@@ -9,6 +9,7 @@ public class GameManager : MonoBehaviour
     private GameClient client;
 
     private bool connectionRejected = false;
+    private static string disconnectReason = "";
 
     void Awake()
     {
@@ -36,6 +37,18 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    public static void SetDisconnectReason(string reason)
+    {
+        disconnectReason = reason;
+    }
+
+    public static string ConsumeDisconnectReason()
+    {
+        string r = disconnectReason;
+        disconnectReason = "";
+        return r;
+    }
+
     public void MarkConnectionRejected()
     {
         connectionRejected = true;
@@ -60,6 +73,7 @@ public class GameManager : MonoBehaviour
             SceneManager.LoadScene("MainMenu");
         });
     }
+
     public void ResetConnectionState()
     {
         connectionRejected = false;
@@ -85,10 +99,7 @@ public class GameManager : MonoBehaviour
         int playerCount = net.State.Players.Count;
 
         if (playerCount < 2)
-        {
-            Debug.Log("No hay suficientes jugadores para iniciar");
             return;
-        }
 
         net.Send(new StartGameMessage());
     }
