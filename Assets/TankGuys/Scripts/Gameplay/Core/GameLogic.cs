@@ -45,7 +45,7 @@ public class GameLogic
 
         Vector2 newPos = player.Position + input * speed * dt;
 
-        float arenaRadius = 8f;
+        float arenaRadius = 6f;
 
         if (newPos.magnitude > arenaRadius)
         {
