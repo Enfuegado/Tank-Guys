@@ -6,6 +6,7 @@ public class PlayerManager : MonoBehaviour
     public static PlayerManager Instance;
 
     public GameObject[] playerPrefabs;
+    public GameObject youLabelPrefab;
 
     private Dictionary<int, GameObject> playerObjects = new();
     private Dictionary<int, Animator> playerAnimators = new();
@@ -89,11 +90,26 @@ public class PlayerManager : MonoBehaviour
         {
             if (!obj.TryGetComponent<PlayerLocalController>(out _))
                 obj.AddComponent<PlayerLocalController>();
+
+            CreateYouLabel(obj);
         }
         else
         {
             if (!obj.TryGetComponent<PlayerRemoteController>(out _))
                 obj.AddComponent<PlayerRemoteController>();
+        }
+    }
+
+    private void CreateYouLabel(GameObject target)
+    {
+        if (youLabelPrefab == null) return;
+
+        GameObject label = Instantiate(youLabelPrefab);
+
+        var labelScript = label.GetComponent<PlayerLabel>();
+        if (labelScript != null)
+        {
+            labelScript.target = target.transform;
         }
     }
 
