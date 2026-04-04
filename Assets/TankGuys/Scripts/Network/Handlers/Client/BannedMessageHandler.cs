@@ -1,10 +1,10 @@
 using UnityEngine;
 
-public class KickedHandler : IMessageHandler
+public class BannedMessageHandler : IMessageHandler
 {
     public void Handle(NetMessage message, GameClient client)
     {
-        var msg = message as KickedMessage;
+        var msg = message as BannedMessage;
         if (msg == null) return;
 
         UnityMainThreadDispatcher.Instance().Enqueue(() =>

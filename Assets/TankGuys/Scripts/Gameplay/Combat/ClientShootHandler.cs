@@ -7,33 +7,25 @@ public class ClientShootHandler : MonoBehaviour
 
     void Start()
     {
-        InvokeRepeating(nameof(TryInitialize), 0f, 0.5f);
+        Initialize();
     }
 
-    void TryInitialize()
+    private void Initialize()
     {
-        if (client != null) return;
-
         if (NetworkBootstrap.Instance == null) return;
 
         client = NetworkBootstrap.Instance.ActiveClient;
         if (client == null) return;
 
-        spawner = FindObjectOfType<ProjectileSpawner>();
+        spawner = FindFirstObjectByType<ProjectileSpawner>();
         if (spawner == null) return;
 
         client.Logic.OnShoot += HandleShoot;
-
-        Debug.Log("ShootHandler INITIALIZED");
-
-        CancelInvoke();
     }
 
     private void HandleShoot(int playerId, float dirX, float dirY)
     {
-        Debug.Log("SPAWN PROJECTILE");
-
-        var playerObj = FindPlayerObject(playerId);
+        GameObject playerObj = PlayerManager.Instance.GetPlayerObject(playerId);
         if (playerObj == null) return;
 
         var shootPoint = playerObj.transform.Find("Turret/Gun/ShootPoint");
@@ -42,19 +34,6 @@ public class ClientShootHandler : MonoBehaviour
         Vector2 direction = new Vector2(dirX, dirY);
 
         spawner.Spawn(playerId, shootPoint, direction);
-    }
-
-    private GameObject FindPlayerObject(int playerId)
-    {
-        var players = FindObjectsOfType<PlayerTag>();
-
-        foreach (var p in players)
-        {
-            if (p.PlayerId == playerId)
-                return p.gameObject;
-        }
-
-        return null;
     }
 
     private void OnDestroy()

@@ -8,11 +8,13 @@ public class PlayerManager : MonoBehaviour
     public GameObject[] playerPrefabs;
 
     private Dictionary<int, GameObject> playerObjects = new();
-    private Dictionary<int, Queue<Vector3>> positionBuffers = new();
     private Dictionary<int, Animator> playerAnimators = new();
 
     private GameState state;
     private SpawnManager spawnManager;
+
+    private PlayerMovementInterpolator interpolator = new PlayerMovementInterpolator();
+    private PlayerSpawner spawner;
 
     void Awake()
     {
@@ -29,6 +31,7 @@ public class PlayerManager : MonoBehaviour
     {
         state = gameState;
         spawnManager = FindObjectOfType<SpawnManager>();
+        spawner = new PlayerSpawner(spawnManager, playerPrefabs);
     }
 
     void Update()
@@ -70,45 +73,28 @@ public class PlayerManager : MonoBehaviour
 
     private void SpawnPlayer(int id)
     {
-        Vector2 spawnPos = spawnManager != null
-            ? spawnManager.GetSpawnPosition(id)
-            : Vector2.zero;
-
-        GameObject prefab = GetPrefabForPlayer(id);
-
-        GameObject obj = Instantiate(prefab, spawnPos, Quaternion.identity);
-        obj.name = $"Player_{id}";
-
-        var tag = obj.GetComponent<PlayerTag>();
-        if (tag != null)
-        {
-            tag.PlayerId = id;
-        }
-
-        if (state.Players.TryGetValue(id, out var playerData))
-        {
-            playerData.Position = spawnPos;
-        }
+        GameObject obj = spawner.Spawn(id, state);
 
         playerObjects[id] = obj;
-
-        positionBuffers[id] = new Queue<Vector3>();
 
         var anim = obj.GetComponentInChildren<Animator>();
         if (anim != null)
         {
             playerAnimators[id] = anim;
         }
-    }
 
-    private GameObject GetPrefabForPlayer(int id)
-    {
-        if (playerPrefabs == null || playerPrefabs.Length == 0)
-            return null;
+        bool isLocal = id == state.LocalPlayerId;
 
-        int index = (id - 1) % playerPrefabs.Length;
-
-        return playerPrefabs[index];
+        if (isLocal)
+        {
+            if (!obj.TryGetComponent<PlayerLocalController>(out _))
+                obj.AddComponent<PlayerLocalController>();
+        }
+        else
+        {
+            if (!obj.TryGetComponent<PlayerRemoteController>(out _))
+                obj.AddComponent<PlayerRemoteController>();
+        }
     }
 
     private void UpdatePlayer(PlayerData data)
@@ -118,46 +104,31 @@ public class PlayerManager : MonoBehaviour
 
         if (data.Status == PlayerStatus.Spectator)
         {
-            Destroy(obj);
-            playerObjects.Remove(data.Id);
-            positionBuffers.Remove(data.Id);
-            playerAnimators.Remove(data.Id);
+            RemovePlayer(data.Id);
             return;
         }
 
+        Vector3 currentPos = obj.transform.position;
         Vector3 targetPos = new Vector3(data.Position.x, data.Position.y, 0);
 
-        if (!positionBuffers.ContainsKey(data.Id))
-        {
-            positionBuffers[data.Id] = new Queue<Vector3>();
-        }
-
-        var buffer = positionBuffers[data.Id];
-        buffer.Enqueue(targetPos);
-
-        if (buffer.Count > 5)
-        {
-            buffer.Dequeue();
-        }
-
-        Vector3 currentPos = obj.transform.position;
-        Vector3 newPos = currentPos;
-
-        if (buffer.Count >= 2)
-        {
-            var positions = buffer.ToArray();
-            Vector3 to = positions[1];
-            float t = 10f * Time.deltaTime;
-            newPos = Vector3.Lerp(currentPos, to, t);
-        }
-
-        bool isMoving = (targetPos - currentPos).sqrMagnitude > 0.0001f;
+        Vector3 newPos = interpolator.GetPosition(data.Id, currentPos, targetPos);
 
         obj.transform.position = newPos;
+
+        bool isMoving = (targetPos - currentPos).sqrMagnitude > 0.0001f;
 
         if (playerAnimators.TryGetValue(data.Id, out var anim))
         {
             anim.SetBool("IsMoving", isMoving);
+        }
+
+        if (obj.TryGetComponent<PlayerLocalController>(out var local))
+        {
+            local.Tick(data);
+        }
+        else if (obj.TryGetComponent<PlayerRemoteController>(out var remote))
+        {
+            remote.Tick(data);
         }
     }
 
@@ -167,8 +138,16 @@ public class PlayerManager : MonoBehaviour
         {
             Destroy(obj);
             playerObjects.Remove(id);
-            positionBuffers.Remove(id);
             playerAnimators.Remove(id);
+            interpolator.Remove(id);
         }
+    }
+
+    public GameObject GetPlayerObject(int id)
+    {
+        if (playerObjects.TryGetValue(id, out var obj))
+            return obj;
+
+        return null;
     }
 }

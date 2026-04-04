@@ -46,8 +46,8 @@ public class GameClient
         dispatcher.Register<ConnectionRejectedMessage>(new ConnectionRejectedHandler());
         dispatcher.Register<PongMessage>(new PongMessageHandler());
         dispatcher.Register<PingReportMessage>(new PingReportMessageHandler());
-        dispatcher.Register<KickedMessage>(new KickedHandler());
-        dispatcher.Register<BannedMessage>(new BannedHandler());
+        dispatcher.Register<KickedMessage>(new KickedMessageHandler());
+        dispatcher.Register<BannedMessage>(new BannedMessageHandler());
     }
 
     public void Start()
