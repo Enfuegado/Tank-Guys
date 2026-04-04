@@ -51,16 +51,34 @@ public class MainMenuUI : MonoBehaviour
         statusText.text = "Creating lobby...";
 
         NetworkBootstrap.Instance.CreateRoom();
+
+        Invoke(nameof(ResetConnectionUI), 3f);
     }
 
-    private async void OnJoinClicked()
+    private void OnJoinClicked()
     {
         if (connecting) return;
 
         connecting = true;
         statusText.text = "Conectando...";
 
-        await NetworkBootstrap.Instance.JoinRoom();
+        NetworkBootstrap.Instance.JoinRoom();
+
+        Invoke(nameof(ResetConnectionUI), 3f);
+    }
+
+    private void ResetConnectionUI()
+    {
+        if (!connecting) return;
+
+        var state = NetworkBootstrap.Instance.State;
+
+        if (state == null || state.Players.Count == 0)
+        {
+            connecting = false;
+            statusText.text = "";
+            NetworkBootstrap.Instance.ResetNetwork();
+        }
     }
 
     public void ResetUI()
