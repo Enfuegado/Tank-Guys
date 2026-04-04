@@ -43,6 +43,14 @@ public class GameServer
             if (state.Players.Count < 2)
                 return;
 
+            state.WinnerId = null;
+
+            foreach (var player in state.Players.Values)
+            {
+                player.Lives = 5;
+                player.Status = PlayerStatus.Alive;
+            }
+
             state.Phase = GamePhase.Playing;
 
             router.Broadcast(new StartGameMessage());
@@ -57,14 +65,17 @@ public class GameServer
         {
             logic.OnPlayerDisconnected(id);
 
-            if (!gameEndedSent && state.Phase == GamePhase.Ended && state.WinnerId.HasValue)
+            if (state.Phase == GamePhase.Ended && state.WinnerId.HasValue)
             {
-                gameEndedSent = true;
-
                 router.Broadcast(new GameEndMessage
                 {
                     winnerId = state.WinnerId.Value
                 });
+
+                if (state.Players.Count <= 1)
+                {
+                    state.Phase = GamePhase.Paused;
+                }
             }
         };
 
@@ -93,10 +104,8 @@ public class GameServer
                 status = (int)player.Status
             });
 
-            if (!gameEndedSent && state.Phase == GamePhase.Ended && state.WinnerId.HasValue)
+            if (state.Phase == GamePhase.Ended && state.WinnerId.HasValue)
             {
-                gameEndedSent = true;
-
                 router.Broadcast(new GameEndMessage
                 {
                     winnerId = state.WinnerId.Value

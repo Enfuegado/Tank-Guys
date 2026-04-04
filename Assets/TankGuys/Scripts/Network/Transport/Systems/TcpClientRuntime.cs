@@ -19,37 +19,44 @@ public class TcpClientRuntime
         this.client = client;
     }
 
-    public async Task Connect(string ip, int port)
+public async Task Connect(string ip, int port)
+{
+    try
     {
-        try
-        {
-            client.OnMessageReceived = null;
-            client.OnDisconnected = null;
+        client.OnMessageReceived = null;
+        client.OnDisconnected = null;
 
-            client.OnMessageReceived += OnMessageReceived;
-            client.OnDisconnected += HandleDisconnect;
+        client.OnMessageReceived += OnMessageReceived;
+        client.OnDisconnected += HandleDisconnect;
 
-            await client.Connect(ip, port);
+        var connectTask = client.Connect(ip, port);
+        var timeoutTask = Task.Delay(3000);
 
-            OnDebug?.Invoke("CLIENTE CONECTADO");
+        var completed = await Task.WhenAny(connectTask, timeoutTask);
 
-            HelloMessage hello = new HelloMessage();
-
-            MessageWrapper wrapper = new MessageWrapper
-            {
-                type = MessageType.Hello,
-                json = JsonUtility.ToJson(hello)
-            };
-
-            string json = JsonUtility.ToJson(wrapper);
-
-            await client.Send(json);
-        }
-        catch (Exception)
+        if (completed == timeoutTask)
         {
             HandleDisconnect();
+            return;
         }
+
+        HelloMessage hello = new HelloMessage();
+
+        MessageWrapper wrapper = new MessageWrapper
+        {
+            type = MessageType.Hello,
+            json = JsonUtility.ToJson(hello)
+        };
+
+        string json = JsonUtility.ToJson(wrapper);
+
+        await client.Send(json);
     }
+    catch (Exception)
+    {
+        HandleDisconnect();
+    }
+}
 
     private void OnMessageReceived(string json)
     {

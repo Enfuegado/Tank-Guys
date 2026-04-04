@@ -27,7 +27,10 @@ public class ServerConnectionService
             return false;
         }
 
-        if (gameState.Phase != GamePhase.Lobby)
+        bool matchInProgress = gameState.Phase == GamePhase.Playing || gameState.Phase == GamePhase.Paused;
+        bool matchFinished = gameState.Phase == GamePhase.Ended && gameState.Players.Count > 1;
+
+        if (matchInProgress || matchFinished)
         {
             send(sender, new ConnectionRejectedMessage
             {

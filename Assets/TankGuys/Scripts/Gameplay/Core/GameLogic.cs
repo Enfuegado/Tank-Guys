@@ -85,6 +85,9 @@ public class GameLogic
 
     private void CheckWinner()
     {
+        if (state.Phase != GamePhase.Playing && state.Phase != GamePhase.Paused)
+            return;
+
         if (state.Phase == GamePhase.Ended)
             return;
 
