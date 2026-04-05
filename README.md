@@ -27,7 +27,7 @@ Juego de tanques en tiempo real con vista superior, desarrollado en Unity con ar
 - [Funcionalidades Administrativas del Host](#funcionalidades-administrativas-del-host)
 - [Flujo Completo del Juego](#flujo-completo-del-juego)
 - [Estructura de Scripts](#estructura-de-scripts)
-- [Errores y Limitaciones Conocidos](#errores-y-limitaciones-conocidos)
+- [Limitaciones Conocidas](#limitaciones-conocidas)
 
 ---
 
