@@ -104,7 +104,7 @@ public class PlayerManager : MonoBehaviour
     {
         if (youLabelPrefab == null) return;
 
-        GameObject label = Instantiate(youLabelPrefab);
+        GameObject label = Instantiate(youLabelPrefab, target.transform);
 
         var labelScript = label.GetComponent<PlayerLabel>();
         if (labelScript != null)
@@ -115,14 +115,14 @@ public class PlayerManager : MonoBehaviour
 
     private void UpdatePlayer(PlayerData data)
     {
-        if (!playerObjects.TryGetValue(data.Id, out GameObject obj))
-            return;
-
         if (data.Status == PlayerStatus.Spectator)
         {
             RemovePlayer(data.Id);
             return;
         }
+
+        if (!playerObjects.TryGetValue(data.Id, out GameObject obj))
+            return;
 
         Vector3 currentPos = obj.transform.position;
         Vector3 targetPos = new Vector3(data.Position.x, data.Position.y, 0);
