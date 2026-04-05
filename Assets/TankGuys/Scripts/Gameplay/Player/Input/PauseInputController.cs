@@ -44,6 +44,6 @@ public class PauseInputController : MonoBehaviour
 
     public void ApplyPauseState(bool paused)
     {
-        // ya no se usa estado local
+
     }
 }

@@ -7,7 +7,6 @@ public class TcpClientRuntime
     private INetworkClient client;
     private MessageRouter router;
 
-    public Action<string> OnDebug;
     public Action OnDisconnected;
 
     private bool isDisconnecting = false;
@@ -19,44 +18,44 @@ public class TcpClientRuntime
         this.client = client;
     }
 
-public async Task Connect(string ip, int port)
-{
-    try
+    public async Task Connect(string ip, int port)
     {
-        client.OnMessageReceived = null;
-        client.OnDisconnected = null;
+        try
+        {
+            client.OnMessageReceived = null;
+            client.OnDisconnected = null;
 
-        client.OnMessageReceived += OnMessageReceived;
-        client.OnDisconnected += HandleDisconnect;
+            client.OnMessageReceived += OnMessageReceived;
+            client.OnDisconnected += HandleDisconnect;
 
-        var connectTask = client.Connect(ip, port);
-        var timeoutTask = Task.Delay(3000);
+            var connectTask = client.Connect(ip, port);
+            var timeoutTask = Task.Delay(3000);
 
-        var completed = await Task.WhenAny(connectTask, timeoutTask);
+            var completed = await Task.WhenAny(connectTask, timeoutTask);
 
-        if (completed == timeoutTask)
+            if (completed == timeoutTask)
+            {
+                HandleDisconnect();
+                return;
+            }
+
+            HelloMessage hello = new HelloMessage();
+
+            MessageWrapper wrapper = new MessageWrapper
+            {
+                type = MessageType.Hello,
+                json = JsonUtility.ToJson(hello)
+            };
+
+            string json = JsonUtility.ToJson(wrapper);
+
+            await client.Send(json);
+        }
+        catch (Exception)
         {
             HandleDisconnect();
-            return;
         }
-
-        HelloMessage hello = new HelloMessage();
-
-        MessageWrapper wrapper = new MessageWrapper
-        {
-            type = MessageType.Hello,
-            json = JsonUtility.ToJson(hello)
-        };
-
-        string json = JsonUtility.ToJson(wrapper);
-
-        await client.Send(json);
     }
-    catch (Exception)
-    {
-        HandleDisconnect();
-    }
-}
 
     private void OnMessageReceived(string json)
     {
@@ -67,7 +66,6 @@ public async Task Connect(string ip, int port)
 
         UnityMainThreadDispatcher.Instance().Enqueue(() =>
         {
-            OnDebug?.Invoke("CLIENT RECIBE: " + json);
             router.Handle(json);
         });
     }
@@ -79,8 +77,6 @@ public async Task Connect(string ip, int port)
 
         UnityMainThreadDispatcher.Instance().Enqueue(() =>
         {
-            OnDebug?.Invoke("CLIENTE DESCONECTADO");
-
             if (receivedRejection)
                 return;
 
@@ -91,10 +87,7 @@ public async Task Connect(string ip, int port)
     public async void Send(string json)
     {
         if (client == null || !client.IsConnected)
-        {
-            OnDebug?.Invoke("CLIENTE NO CONECTADO");
             return;
-        }
 
         try
         {

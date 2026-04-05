@@ -6,8 +6,6 @@ public class TcpServerRuntime
     private INetworkServer server;
     private ServerMessageProcessor router;
 
-    public Action<string> OnDebug;
-
     public TcpServerRuntime(ServerMessageProcessor router, INetworkServer server)
     {
         this.router = router;
@@ -26,14 +24,9 @@ public class TcpServerRuntime
         {
             _ = server.Start(port);
         }
-        catch (Exception)
-        {
-            OnDebug?.Invoke("ERROR AL INICIAR HOST");
-        }
+        catch (Exception) { }
 
         router.Initialize(server);
-
-        OnDebug?.Invoke("HOST INICIADO");
     }
 
     private void OnMessageReceived(string json, TcpClient sender)
@@ -42,10 +35,7 @@ public class TcpServerRuntime
         {
             router.Handle(json, sender);
         }
-        catch (Exception)
-        {
-            OnDebug?.Invoke("ERROR PROCESANDO MENSAJE");
-        }
+        catch (Exception) { }
     }
 
     private void OnClientDisconnected(TcpClient client)
@@ -54,10 +44,7 @@ public class TcpServerRuntime
         {
             router.HandleDisconnect(client);
         }
-        catch (Exception)
-        {
-            OnDebug?.Invoke("ERROR EN DESCONEXIÓN");
-        }
+        catch (Exception) { }
     }
 
     public async void Broadcast(string json)
@@ -66,10 +53,7 @@ public class TcpServerRuntime
         {
             await server.Broadcast(json);
         }
-        catch (Exception)
-        {
-            OnDebug?.Invoke("ERROR EN BROADCAST");
-        }
+        catch (Exception) { }
     }
 
     public void Stop()
