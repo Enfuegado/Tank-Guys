@@ -62,18 +62,18 @@ El modelo de red es **Player-Host**: quien crea la sala lanza un servidor TCP en
 
 ### Host — Crear Sala
 
-1. Abrir el proyecto en Unity 6000.3.8f1 y ejecutar la build (o presionar Play en el editor).
-2. En el menú principal, hacer clic en **"Crear Sala"**.
+1. Abrir el proyecto en Unity 6000.3.8f1 y ejecutar la build (o ejecutar el EXE).
+2. En el menú principal, hacer clic en **"Create Lobby"**.
 3. La aplicación iniciará un servidor TCP en el puerto `7777` y se conectará automáticamente como jugador 1.
-4. Compartir la **dirección IP local** con los demás jugadores (ejemplo: `192.168.1.X`).
-5. Una vez que al menos 2 jugadores estén en el lobby, el host puede presionar **"Iniciar Partida"**.
+4. Los demás jugadores presionan **"Join"**.
+5. Una vez que al menos 2 jugadores estén en el lobby, el host puede presionar **"Start Game"**.
 
 ![Main menu](Assets/TankGuys/Art/DocumentationImages/main_menu.png)
 
 ### Cliente — Unirse a una Sala
 
-1. Abrir la build en otra máquina (o en otra instancia del editor).
-2. En el menú principal, hacer clic en **"Unirse a Sala"**.
+1. Abrir la build en otra máquina (o en la misma).
+2. En el menú principal, hacer clic en **"Join"**.
 3. El cliente intentará conectarse a `127.0.0.1:7777` por defecto.
 
 > **Importante:** Para conectarse a un host en otra máquina, modificar la IP en `TcpTransport.cs`, dentro del método `Start()`, reemplazando `"127.0.0.1"` por la IP del host.
@@ -249,65 +249,65 @@ El host puede pausar y reanudar la partida mediante el botón en pantalla o la t
 ```
 Scripts/
 ├── Core/
-│   └── UnityMainThreadDispatcher      # Cola thread-safe para ejecutar acciones en el hilo principal
+│   └── UnityMainThreadDispatcher      
 │
 ├── Gameplay/
 │   ├── Arena/
-│   │   └── SpawnManager               # Asigna posiciones de aparición según el ID del jugador
+│   │   └── SpawnManager               
 │   ├── Combat/
-│   │   ├── ClientShootHandler         # Instancia proyectiles al recibir el evento de disparo
-│   │   ├── DamageMessage              # Mensaje: ID del jugador que recibe daño
-│   │   ├── Projectile                 # Movimiento del proyectil y detección de impacto
-│   │   ├── ProjectileSpawner          # Instancia prefabs de proyectiles en el punto de disparo
-│   │   ├── ShootMessage               # Mensaje: dirección del disparo (dirX, dirY)
-│   │   └── ShootMessageHandler        # Procesa mensajes de disparo recibidos en el cliente
+│   │   ├── ClientShootHandler         
+│   │   ├── DamageMessage              
+│   │   ├── Projectile                 
+│   │   ├── ProjectileSpawner          
+│   │   ├── ShootMessage               
+│   │   └── ShootMessageHandler        
 │   ├── Core/
-│   │   ├── GameEndUIController        # Muestra la pantalla de ganador al terminar la partida
-│   │   ├── GameLogic                  # Reglas del juego y transiciones de estado (lado servidor)
-│   │   ├── GameManager                # MonoBehaviour central; gestiona cambios de escena
-│   │   ├── HostPauseController        # Botón de pausa visible únicamente para el host
-│   │   └── PauseUIController          # Panel de pausa visible para todos los jugadores
+│   │   ├── GameEndUIController        
+│   │   ├── GameLogic                  
+│   │   ├── GameManager                
+│   │   ├── HostPauseController        
+│   │   └── PauseUIController          
 │   ├── Player/
 │   │   ├── Core/
-│   │   │   ├── PlayerLabel            # Etiqueta "YOU" flotante sobre el jugador local
-│   │   │   ├── PlayerLocalController  # Procesa input local y lo envía a la red
-│   │   │   ├── PlayerManager          # Crea, actualiza y elimina GameObjects de jugadores
-│   │   │   ├── PlayerMovementInterpolator # Suavizado de posición por interpolación lineal
-│   │   │   ├── PlayerNetworkSender    # Centraliza envíos de dirección, torreta y disparo
-│   │   │   ├── PlayerRemoteController # Suavizado de rotación para jugadores remotos
-│   │   │   └── PlayerSpawner          # Instancia prefabs de jugadores en sus puntos de aparición
+│   │   │   ├── PlayerLabel            
+│   │   │   ├── PlayerLocalController  
+│   │   │   ├── PlayerManager          
+│   │   │   ├── PlayerMovementInterpolator 
+│   │   │   ├── PlayerNetworkSender    
+│   │   │   ├── PlayerRemoteController 
+│   │   │   └── PlayerSpawner          
 │   │   ├── Data/
-│   │   │   ├── PlayerData             # Posición, vidas, estado y rotaciones de cada jugador
-│   │   │   ├── PlayerDataExtensions   # Métodos IsAlive() e IsSpectator()
-│   │   │   ├── PlayerStatus           # Enum: Alive, Spectator
-│   │   │   └── PlayerTag              # MonoBehaviour que expone el PlayerId en el GameObject
+│   │   │   ├── PlayerData             
+│   │   │   ├── PlayerDataExtensions   
+│   │   │   ├── PlayerStatus          
+│   │   │   └── PlayerTag              
 │   │   ├── Input/
-│   │   │   ├── PauseInputController   # Detecta tecla P para pausar (solo host)
-│   │   │   └── PlayerInputController  # Captura movimiento y disparo a 30 Hz y los envía
+│   │   │   ├── PauseInputController  
+│   │   │   └── PlayerInputController  
 │   │   └── Network/
-│   │       ├── TankDirectionMessage   # Mensaje: índice de dirección del casco (0–7)
+│   │       ├── TankDirectionMessage   
 │   │       ├── TankDirectionMessageHandler
-│   │       ├── TurretRotationMessage  # Mensaje: ángulo de la torreta en grados
+│   │       ├── TurretRotationMessage  
 │   │       └── TurretRotationMessageHandler
 │   ├── State/
-│   │   ├── GamePhase                  # Enum: Lobby, Playing, Paused, Ended
-│   │   ├── GameStateExtensions        # AliveCount() e IsGameplayBlocked()
-│   │   ├── PlayerStateMessage         # Mensaje: vidas actuales y estado del jugador
-│   │   └── PlayerStateMessageHandler  # Aplica cambios de estado recibidos al GameState local
+│   │   ├── GamePhase                  
+│   │   ├── GameStateExtensions        
+│   │   ├── PlayerStateMessage         
+│   │   └── PlayerStateMessageHandler  
 │   └── Systems/
-│       └── PingSystem                 # Mide y distribuye la latencia de cada jugador
+│       └── PingSystem                 
 │
 ├── Network/
 │   ├── Client/
-│   │   ├── GameClient                 # Cliente de juego; registra handlers y expone eventos
-│   │   ├── GameSnapshotProcessor      # Aplica snapshots de estado al GameState local
-│   │   └── MessageDispatcher          # Enruta mensajes entrantes a sus IMessageHandler
+│   │   ├── GameClient                 
+│   │   ├── GameSnapshotProcessor      
+│   │   └── MessageDispatcher          
 │   ├── Core/
-│   │   └── ConnectionManager          # Mapeo TcpClient ↔ playerId con reutilización de IDs
+│   │   └── ConnectionManager          
 │   ├── Handlers/
 │   │   ├── Base/
-│   │   │   └── IMessageHandler        # Interfaz: Handle(NetMessage, GameClient)
-│   │   ├── Client/                    # Un handler por cada tipo de mensaje que recibe el cliente
+│   │   │   └── IMessageHandler        
+│   │   ├── Client/                    
 │   │   │   ├── AssignIdMessageHandler
 │   │   │   ├── BannedMessageHandler
 │   │   │   ├── ConnectionRejectedHandler
@@ -320,70 +320,69 @@ Scripts/
 │   │   │   ├── PongMessageHandler
 │   │   │   └── StartGameMessageHandler
 │   │   └── Server/
-│   │       └── IServerMessageHandler  # Interfaz genérica para handlers del lado servidor
+│   │       └── IServerMessageHandler  
 │   ├── Runtime/
-│   │   ├── HostNetwork                # Orquesta GameServer + GameClient en la misma instancia
-│   │   └── NetworkBootstrap           # MonoBehaviour de entrada; decide si crear host o cliente
+│   │   ├── HostNetwork                
+│   │   └── NetworkBootstrap           
 │   ├── Server/
-│   │   ├── GameServer                 # Ensambla servidor TCP, lógica de juego y procesador
-│   │   ├── ServerAdminService         # Gestiona kick, ban y registro de IPs baneadas
-│   │   ├── ServerConnectionService    # Valida y registra nuevas conexiones entrantes
-│   │   ├── ServerMessageProcessor     # Despacha mensajes del servidor según su tipo
-│   │   └── ServerMessageSender        # Serializa y envía/difunde mensajes desde el servidor
+│   │   ├── GameServer                 
+│   │   ├── ServerAdminService         
+│   │   ├── ServerConnectionService    
+│   │   ├── ServerMessageProcessor     
+│   │   └── ServerMessageSender        
 │   ├── Shared/
 │   │   ├── Messages/
-│   │   │   ├── Core/                  # AssignIdMessage, HelloMessage, NetMessage, PlayerListMessage
-│   │   │   ├── Gameplay/              # GameEndMessage, MoveMessage, PauseMessage, StartGameMessage
-│   │   │   ├── Request/               # BanRequestMessage, KickRequestMessage
-│   │   │   ├── Responses/             # BannedMessage, ConnectionRejectedMessage, KickedMessage
-│   │   │   └── System/                # PingMessage, PingReportMessage, PongMessage
+│   │   │   ├── Core/                  
+│   │   │   ├── Gameplay/              
+│   │   │   ├── Request/               
+│   │   │   ├── Responses/             
+│   │   │   └── System/                
 │   │   └── State/
-│   │       ├── GameSnapshot           # Snapshot completo del estado del juego
-│   │       ├── GameState              # Estado central: jugadores, fase, ganador
-│   │       └── PlayerSnapshot         # Posición puntual serializable de un jugador
+│   │       ├── GameSnapshot           
+│   │       ├── GameState            
+│   │       └── PlayerSnapshot        
 │   └── Transport/
 │       ├── Common/
-│       │   ├── MessageRouter          # Deserializa JSON y lo enruta al handler registrado
-│       │   ├── MessageType            # Enum con todos los tipos de mensaje del sistema
-│       │   └── MessageWrapper         # Envoltorio de transporte: type + json payload
+│       │   ├── MessageRouter         
+│       │   ├── MessageType            
+│       │   └── MessageWrapper        
 │       ├── Interfaces/
-│       │   └── ITransport             # Interfaz: Send, Start, Stop, OnMessage, OnDisconnected
+│       │   └── ITransport             
 │       ├── Systems/
-│       │   ├── TcpClientRuntime       # Gestiona conexión, envío, recepción y desconexión TCP
-│       │   └── TcpServerRuntime       # Puente entre NetworkServer y ServerMessageProcessor
+│       │   ├── TcpClientRuntime       
+│       │   └── TcpServerRuntime     
 │       └── TCP/
-│           ├── INetworkClient         # Interfaz de cliente TCP
-│           ├── INetworkServer         # Interfaz de servidor TCP
-│           ├── NetworkClient          # Cliente TCP: conecta, envía, bucle de recepción
-│           ├── NetworkServer          # Servidor TCP: escucha, acepta y gestiona clientes
-│           └── TcpTransport           # Implementa ITransport usando TcpClientRuntime
+│           ├── INetworkClient         
+│           ├── INetworkServer        
+│           ├── NetworkServer         
+│           └── TcpTransport           
 │
 └── UI/
     ├── Common/
-    │   ├── ErrorPanelUI               # Panel de error reutilizable con mensaje y botón OK
-    │   └── ExitButtonUI               # Botón para regresar al menú principal
+    │   ├── ErrorPanelUI               
+    │   └── ExitButtonUI              
     ├── Game/
-    │   ├── InGamePlayerListUI         # HUD: lista jugadores con vidas y ping en tiempo real
-    │   └── PlayerRowInGameUI          # Fila individual: nombre, corazones y latencia
+    │   ├── InGamePlayerListUI      
+    │   └── PlayerRowInGameUI          
     ├── Lobby/
-    │   ├── LobbyUI                    # Sala de espera: lista jugadores, estado y botón iniciar
-    │   └── PlayerRowUI                # Fila de jugador con opciones de kick y ban (solo host)
+    │   ├── LobbyUI                    
+    │   └── PlayerRowUI                
     └── Menu/
-        └── MainMenuUI                 # Menú principal: botones Crear/Unirse y mensajes de estado
+        └── MainMenuUI                 
 ```
 
 ---
 
-## Errores y Limitaciones Conocidos
+## Limitaciones Conocidas
 
 | Problema | Descripción |
 |---|---|
-| **IP hardcodeada** | Los clientes se conectan a `127.0.0.1` por defecto. Para jugar en red real se debe editar `TcpTransport.cs` manualmente antes de compilar. No existe campo de IP en la UI. |
+| **IP hardcodeada** | Los clientes se conectan a `127.0.0.1` por defecto. Para jugar en red real se debe editar `TcpTransport.cs` manualmente antes de compilar. |
 | **Sin transferencia de host** | Si el host cierra la aplicación todos los clientes son desconectados. No hay mecanismo para transferir el rol de host a otro jugador. |
 | **Proyectiles solo locales** | Los proyectiles se instancian localmente en cada cliente al recibir `ShootMessage`; no son objetos de red sincronizados. Puede haber pequeñas discrepancias visuales con latencia alta. |
 | **Sin reconexión** | Si un cliente pierde la conexión por error de red (sin kick ni ban), no puede volver a unirse a la misma sesión activa. |
-| **Buffer de lectura fijo** | El buffer TCP está fijo en 1024 bytes. Mensajes que excedan ese tamaño en un solo chunk podrían fragmentarse. En la práctica los mensajes son pequeños y no se ha presentado este problema. |
+| **Buffer de lectura fijo** | El buffer TCP está fijo en 1024 bytes. Mensajes que excedan ese tamaño podrían fragmentarse. En la práctica los mensajes son pequeños y no se ha presentado este problema. |
 | **Sin cifrado ni autenticación** | Las comunicaciones no están cifradas. No se recomienda exponer el puerto `7777` en redes públicas. |
-| **Máximo de jugadores no configurable** | El límite de 4 jugadores está validado en `ServerConnectionService` pero no es ajustable desde la interfaz. |
+| **Máximo de jugadores no configurable** | El límite de 4 jugadores está validado en `ServerConnectionService` no es ajustable desde la interfaz. |
 
 <p align="right"><a href="#readme-top">Volver al inicio</a></p>
