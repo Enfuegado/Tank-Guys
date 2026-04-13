@@ -7,8 +7,14 @@ public class PlayerLabel : MonoBehaviour
 
     void Update()
     {
-        if (target == null) return;
+        if (target == null)
+        {
+            Destroy(gameObject);
+            return;
+        }
 
         transform.position = target.position + offset;
+
+        transform.rotation = Quaternion.identity;
     }
 }
