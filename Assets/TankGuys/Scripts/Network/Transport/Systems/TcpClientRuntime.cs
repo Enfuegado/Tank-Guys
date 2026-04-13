@@ -95,7 +95,7 @@ public class TcpClientRuntime
         }
         catch (Exception)
         {
-            HandleDisconnect();
+            Debug.LogError("[ERROR] Exception occurred");
         }
     }
 
@@ -105,7 +105,10 @@ public class TcpClientRuntime
         {
             client?.Disconnect();
         }
-        catch { }
+        catch (Exception)
+        {
+            Console.WriteLine("[ERROR] Exception occurred");
+        }
 
         HandleDisconnect();
     }

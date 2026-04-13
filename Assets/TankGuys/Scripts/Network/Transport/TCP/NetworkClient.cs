@@ -72,8 +72,14 @@ public class NetworkClient : INetworkClient
 
         IsConnected = false;
 
-        try { stream?.Close(); } catch {}
-        try { client?.Close(); } catch {}
+        try { stream?.Close(); } catch (Exception ex)
+        {
+            Console.WriteLine($"[ERROR] {ex.Message}\n{ex.StackTrace}");
+        }
+        try { client?.Close(); } catch (Exception ex)
+        {
+            Console.WriteLine($"[ERROR] {ex.Message}\n{ex.StackTrace}");
+        }
 
         stream = null;
         client = null;

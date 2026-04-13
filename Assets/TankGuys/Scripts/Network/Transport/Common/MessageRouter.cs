@@ -25,7 +25,7 @@ public class MessageRouter
         }
         else
         {
-            Debug.LogWarning("Tipo desconocido: " + wrapper.type);
+            Debug.LogWarning("Type Unknown: " + wrapper.type);
         }
     }
 }

@@ -44,7 +44,10 @@ public class ServerAdminService
     {
         System.Threading.Tasks.Task.Delay(100).ContinueWith(_ =>
         {
-            try { client.Close(); } catch {}
+            try { client.Close(); } catch (Exception ex)
+        {
+            Console.WriteLine($"[ERROR] {ex.Message}\n{ex.StackTrace}");
+        }
         });
 
         connectionManager.RemoveClient(client);

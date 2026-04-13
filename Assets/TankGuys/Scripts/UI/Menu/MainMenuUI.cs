@@ -60,7 +60,7 @@ public class MainMenuUI : MonoBehaviour
         if (connecting) return;
 
         connecting = true;
-        statusText.text = "Conectando...";
+        statusText.text = "Connecting...";
 
         NetworkBootstrap.Instance.JoinRoom();
 

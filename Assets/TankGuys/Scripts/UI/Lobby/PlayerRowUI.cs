@@ -15,7 +15,7 @@ public class PlayerRowUI : MonoBehaviour
     public void Setup(int id)
     {
         playerId = id;
-        nameText.text = "Jugador " + id;
+        nameText.text = "Player " + id;
 
         mainButton.onClick.RemoveAllListeners();
         mainButton.onClick.AddListener(ToggleActions);

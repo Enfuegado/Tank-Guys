@@ -24,7 +24,10 @@ public class TcpServerRuntime
         {
             _ = server.Start(port);
         }
-        catch (Exception) { }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[ERROR] {ex.Message}\n{ex.StackTrace}");
+        }
 
         router.Initialize(server);
     }
@@ -35,7 +38,10 @@ public class TcpServerRuntime
         {
             router.Handle(json, sender);
         }
-        catch (Exception) { }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[ERROR] {ex.Message}\n{ex.StackTrace}");
+        }
     }
 
     private void OnClientDisconnected(TcpClient client)
@@ -44,7 +50,10 @@ public class TcpServerRuntime
         {
             router.HandleDisconnect(client);
         }
-        catch (Exception) { }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[ERROR] {ex.Message}\n{ex.StackTrace}");
+        }
     }
 
     public async void Broadcast(string json)
@@ -53,7 +62,10 @@ public class TcpServerRuntime
         {
             await server.Broadcast(json);
         }
-        catch (Exception) { }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[ERROR] {ex.Message}\n{ex.StackTrace}");
+        }
     }
 
     public void Stop()
@@ -62,6 +74,9 @@ public class TcpServerRuntime
         {
             server?.Stop();
         }
-        catch { }
+        catch (Exception)
+        {
+            Console.WriteLine("[ERROR] Exception occurred");
+        }
     }
 }

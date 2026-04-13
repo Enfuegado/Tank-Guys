@@ -79,7 +79,10 @@ public class NetworkServer : INetworkServer
 
         clients.Remove(client);
 
-        try { client.Close(); } catch {}
+        try { client.Close(); } catch (Exception ex)
+        {
+            Console.WriteLine($"[ERROR] {ex.Message}\n{ex.StackTrace}");
+        }
     }
 
     public async Task Send(TcpClient client, string message)
@@ -92,8 +95,9 @@ public class NetworkServer : INetworkServer
         {
             await client.GetStream().WriteAsync(data, 0, data.Length);
         }
-        catch
+        catch (Exception ex)
         {
+            Console.WriteLine($"[ERROR] {ex.Message}\n{ex.StackTrace}");
         }
     }
 
@@ -109,8 +113,9 @@ public class NetworkServer : INetworkServer
             {
                 await client.GetStream().WriteAsync(data, 0, data.Length);
             }
-            catch
+            catch (Exception ex)
             {
+                Console.WriteLine($"[ERROR] {ex.Message}\n{ex.StackTrace}");
             }
         }
     }
@@ -119,11 +124,17 @@ public class NetworkServer : INetworkServer
     {
         isRunning = false;
 
-        try { listener?.Stop(); } catch {}
+        try { listener?.Stop(); } catch (Exception ex)
+        {
+            Console.WriteLine($"[ERROR] {ex.Message}\n{ex.StackTrace}");
+        }
 
         foreach (var client in clients)
         {
-            try { client.Close(); } catch {}
+            try { client.Close(); } catch (Exception ex)
+        {
+            Console.WriteLine($"[ERROR] {ex.Message}\n{ex.StackTrace}");
+        }
         }
 
         clients.Clear();
