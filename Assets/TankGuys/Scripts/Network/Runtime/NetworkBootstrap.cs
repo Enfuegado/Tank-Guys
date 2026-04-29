@@ -1,5 +1,4 @@
 using UnityEngine;
-using System.Threading.Tasks;
 
 public class NetworkBootstrap : MonoBehaviour
 {
@@ -63,14 +62,14 @@ public class NetworkBootstrap : MonoBehaviour
         InitializeGame();
     }
 
-    public async Task JoinRoom()
+    public void JoinRoom(string ip)
     {
         var transport = new TcpTransport();
         client = new GameClient(transport);
-        client.Start();
+
+        client.Connect(ip);
 
         InitializeGame();
-        await Task.CompletedTask;
     }
 
     public void Send(NetMessage msg)

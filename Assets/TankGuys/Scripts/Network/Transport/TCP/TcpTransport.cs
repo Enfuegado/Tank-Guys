@@ -39,9 +39,18 @@ public class TcpTransport : ITransport
         };
     }
 
-    public async void Start()
+    // 🔥 NUEVO: conexión con IP dinámica
+    public async void Connect(string ip, int port)
     {
-        await TcpClientRuntime.Connect("127.0.0.1", 7777);
+        try
+        {
+            await TcpClientRuntime.Connect(ip, port);
+        }
+        catch (Exception e)
+        {
+            Debug.LogError("Connection failed: " + e.Message);
+            OnDisconnected?.Invoke();
+        }
     }
 
     public void Stop()

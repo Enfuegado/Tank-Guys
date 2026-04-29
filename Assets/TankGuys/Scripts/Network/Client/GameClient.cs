@@ -50,9 +50,10 @@ public class GameClient
         dispatcher.Register<BannedMessage>(new BannedMessageHandler());
     }
 
-    public void Start()
+    // 🔥 NUEVO: recibe IP
+    public void Connect(string ip, int port = 7777)
     {
-        transport.Start();
+        transport.Connect(ip, port);
     }
 
     public void Stop()

@@ -19,7 +19,9 @@ public class HostNetwork
 
         var transport = new TcpTransport();
         client = new GameClient(transport);
-        client.Start();
+
+        // 🔥 CLAVE: el host se conecta a sí mismo
+        client.Connect("127.0.0.1", 7777);
 
         return true;
     }

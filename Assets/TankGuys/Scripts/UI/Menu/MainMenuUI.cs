@@ -2,15 +2,19 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using TMPro;
 using UnityEngine.UI;
+using System.Net;
 
 public class MainMenuUI : MonoBehaviour
 {
     public Button createButton;
     public Button joinButton;
+    public TMP_InputField ipInput;
     public TextMeshProUGUI statusText;
 
     private bool connecting = false;
     private bool alreadyLoaded = false;
+
+    private const string DEFAULT_IP = "127.0.0.1";
 
     void Start()
     {
@@ -20,13 +24,14 @@ public class MainMenuUI : MonoBehaviour
         createButton.onClick.AddListener(OnCreateClicked);
         joinButton.onClick.AddListener(OnJoinClicked);
 
+        if (string.IsNullOrWhiteSpace(ipInput.text))
+            ipInput.text = DEFAULT_IP;
+
         string reason = GameManager.ConsumeDisconnectReason();
         if (!string.IsNullOrEmpty(reason))
         {
             if (ErrorPanelUI.Instance != null)
-            {
                 ErrorPanelUI.Instance.Show(reason);
-            }
         }
     }
 
@@ -59,12 +64,26 @@ public class MainMenuUI : MonoBehaviour
     {
         if (connecting) return;
 
+        string ip = ipInput.text.Trim();
+
+        if (!IsValidIP(ip))
+        {
+            statusText.text = "";
+            ErrorPanelUI.Instance?.Show("Invalid IP address");
+            return;
+        }
+
         connecting = true;
         statusText.text = "Connecting...";
 
-        NetworkBootstrap.Instance.JoinRoom();
+        NetworkBootstrap.Instance.JoinRoom(ip);
 
         Invoke(nameof(ResetConnectionUI), 3f);
+    }
+
+    private bool IsValidIP(string ip)
+    {
+        return IPAddress.TryParse(ip, out _);
     }
 
     private void ResetConnectionUI()
