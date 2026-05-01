@@ -850,7 +850,7 @@ MonoBehaviour:
   m_VertexBufferAutoSizeReduction: 0
   m_useMaxVisibleDescender: 1
   m_pageToDisplay: 1
-  m_margin: {x: 0, y: 0, z: -187.3123, w: 0}
+  m_margin: {x: -325.28677, y: 0, z: -419.82574, w: 0}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
   m_hasFontAssetChanged: 0
@@ -1328,9 +1328,9 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "DEVELOPED BY: \n\nGAME DESIGN:\nPaula Andrea Castro Molina & Jaime Barragan
-    Imbet\n\nART & ASSETS:\nPaula Andrea Castro Molina\n\nPROGRAMMING:\nJaime Barragan
-    Imbet"
+  m_text: "DEVELOPED BY: \n\nGAME DESIGN:\nJaime Barrag\xE1n Imbett & Paula Andrea
+    Castro Molina \n\nART & ASSETS:\nPaula Andrea Castro Molina\n\nPROGRAMMING:\nJaime
+    Barrag\xE1n Imbett"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: b4c26ac9a2c5b8c42b5508c119820f72, type: 2}
   m_sharedMaterial: {fileID: 5175179365186737833, guid: b4c26ac9a2c5b8c42b5508c119820f72, type: 2}
@@ -1370,9 +1370,9 @@ MonoBehaviour:
   m_characterSpacing: 0
   m_characterHorizontalScale: 1
   m_wordSpacing: 0
-  m_lineSpacing: 0
+  m_lineSpacing: 5
   m_lineSpacingMax: 0
-  m_paragraphSpacing: 0
+  m_paragraphSpacing: 5
   m_charWidthMaxAdj: 0
   m_TextWrappingMode: 1
   m_wordWrappingRatios: 0.4
@@ -1396,7 +1396,7 @@ MonoBehaviour:
   m_VertexBufferAutoSizeReduction: 0
   m_useMaxVisibleDescender: 1
   m_pageToDisplay: 1
-  m_margin: {x: -626.08203, y: -369.1366, z: -803.4442, w: -337.16418}
+  m_margin: {x: -626.08203, y: -427.53238, z: -803.4442, w: -387.94327}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
   m_hasFontAssetChanged: 0
@@ -2254,7 +2254,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &1246343439
 RectTransform:
   m_ObjectHideFlags: 0
