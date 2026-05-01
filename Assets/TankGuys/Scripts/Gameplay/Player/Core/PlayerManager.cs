@@ -34,6 +34,7 @@ public class PlayerManager : MonoBehaviour
         spawnManager = FindObjectOfType<SpawnManager>();
         spawner = new PlayerSpawner(spawnManager, playerPrefabs);
     }
+    
 
     void Update()
     {

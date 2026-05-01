@@ -360,7 +360,8 @@ Scripts/
 └── UI/
     ├── Common/
     │   ├── ErrorPanelUI               
-    │   └── ExitButtonUI              
+    │   └── ExitButtonUI        
+    │   └── CreditsPanelUI   
     ├── Game/
     │   ├── InGamePlayerListUI      
     │   └── PlayerRowInGameUI          

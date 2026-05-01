@@ -3,6 +3,7 @@ using UnityEngine.SceneManagement;
 using TMPro;
 using UnityEngine.UI;
 using System.Net;
+using System.Net.Sockets;
 
 public class MainMenuUI : MonoBehaviour
 {
@@ -14,7 +15,8 @@ public class MainMenuUI : MonoBehaviour
     private bool connecting = false;
     private bool alreadyLoaded = false;
 
-    private const string DEFAULT_IP = "127.0.0.1";
+    private enum JoinStep { Idle, WaitingForInput }
+    private JoinStep joinStep = JoinStep.Idle;
 
     void Start()
     {
@@ -24,15 +26,11 @@ public class MainMenuUI : MonoBehaviour
         createButton.onClick.AddListener(OnCreateClicked);
         joinButton.onClick.AddListener(OnJoinClicked);
 
-        if (string.IsNullOrWhiteSpace(ipInput.text))
-            ipInput.text = DEFAULT_IP;
+        SetJoinStep(JoinStep.Idle);
 
         string reason = GameManager.ConsumeDisconnectReason();
         if (!string.IsNullOrEmpty(reason))
-        {
-            if (ErrorPanelUI.Instance != null)
-                ErrorPanelUI.Instance.Show(reason);
-        }
+            ErrorPanelUI.Instance?.Show(reason);
     }
 
     void Update()
@@ -40,7 +38,6 @@ public class MainMenuUI : MonoBehaviour
         if (alreadyLoaded) return;
 
         var state = NetworkBootstrap.Instance.State;
-
         if (state != null && state.Players.Count > 0)
         {
             alreadyLoaded = true;
@@ -48,22 +45,40 @@ public class MainMenuUI : MonoBehaviour
         }
     }
 
-    private void OnCreateClicked()
-    {
-        if (connecting) return;
-
-        connecting = true;
-        statusText.text = "Creating lobby...";
-
-        NetworkBootstrap.Instance.CreateRoom();
-
-        Invoke(nameof(ResetConnectionUI), 3f);
-    }
-
     private void OnJoinClicked()
     {
         if (connecting) return;
 
+        switch (joinStep)
+        {
+            case JoinStep.Idle:
+                SetJoinStep(JoinStep.WaitingForInput);
+                break;
+
+            case JoinStep.WaitingForInput:
+                TryJoin();
+                break;
+        }
+    }
+
+    private void SetJoinStep(JoinStep step)
+    {
+        joinStep = step;
+
+        bool showInput = step == JoinStep.WaitingForInput;
+        ipInput.gameObject.SetActive(showInput);
+
+        if (showInput)
+        {
+            if (string.IsNullOrWhiteSpace(ipInput.text))
+                ipInput.text = GetLocalIPAddress();
+
+            ipInput.Select();
+        }
+    }
+
+    private void TryJoin()
+    {
         string ip = ipInput.text.Trim();
 
         if (!IsValidIP(ip))
@@ -77,13 +92,31 @@ public class MainMenuUI : MonoBehaviour
         statusText.text = "Connecting...";
 
         NetworkBootstrap.Instance.JoinRoom(ip);
-
         Invoke(nameof(ResetConnectionUI), 3f);
     }
 
-    private bool IsValidIP(string ip)
+    private void OnCreateClicked()
     {
-        return IPAddress.TryParse(ip, out _);
+        if (connecting) return;
+
+        connecting = true;
+        statusText.text = "Creating lobby...";
+
+        NetworkBootstrap.Instance.CreateRoom();
+        Invoke(nameof(ResetConnectionUI), 3f);
+    }
+
+    private bool IsValidIP(string ip) => IPAddress.TryParse(ip, out _);
+
+    private string GetLocalIPAddress()
+    {
+        try
+        {
+            using Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, 0);
+            socket.Connect("8.8.8.8", 65530);
+            return (socket.LocalEndPoint as IPEndPoint)?.Address.ToString() ?? "127.0.0.1";
+        }
+        catch { return "127.0.0.1"; }
     }
 
     private void ResetConnectionUI()
@@ -91,11 +124,11 @@ public class MainMenuUI : MonoBehaviour
         if (!connecting) return;
 
         var state = NetworkBootstrap.Instance.State;
-
         if (state == null || state.Players.Count == 0)
         {
             connecting = false;
             statusText.text = "";
+            SetJoinStep(JoinStep.Idle);
             NetworkBootstrap.Instance.ResetNetwork();
         }
     }
@@ -104,5 +137,6 @@ public class MainMenuUI : MonoBehaviour
     {
         connecting = false;
         statusText.text = "";
+        SetJoinStep(JoinStep.Idle);
     }
 }
